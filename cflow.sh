@@ -136,5 +136,4 @@ if [ $program = "cgraph" ]; then
         exit 0
     fi
 fi
-
 ./$program $params $graphfile || exit 2
