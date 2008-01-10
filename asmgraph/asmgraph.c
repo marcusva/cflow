@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007, Marcus von Appen
+ * Copyright (c) 2007-2008, Marcus von Appen
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ static void
 usage (void)
 {
     fprintf (stderr,
-             "usage: asmgraph [-cr] [-d num] [-i incl] [-R root] file ...\n");
+             "usage: asmgraph [-acnr] [-d num] [-i incl] [-R root] file ...\n");
     exit (EXIT_FAILURE);
 }
 
@@ -141,6 +141,7 @@ main (int argc, char *argv[])
         switch (parser)
         {
         case AS_LEXER:
+            as_lex_create_graph (&graph);
             break;
         case NASM_LEXER:
         default:

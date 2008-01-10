@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007, Marcus von Appen
+ * Copyright (c) 2007-2008, Marcus von Appen
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,7 @@ static int
 as_skip_whitespaces (graph_t *graph)
 {
     int ch;
+    int next;
 
     if (feof (graph->fp))
         return EOF;
@@ -76,23 +77,54 @@ as_skip_whitespaces (graph_t *graph)
                 offset = 0;
             }
         }
-        else if (ch == ';')
+        else if (ch == '/')
         {
-            int prev;
-
-            /* Skip through comments */
-            while (ch != EOF && ch != '\n')
+            /* Possible comment block. */
+            next = fgetc (graph->fp);
+            offset++;
+            if (next == '/')
             {
-                prev = ch;
-                if (ch == '\\')
+                /* Single line comment, skip until a newline. */
+                while (next != '\n' && next != EOF)
                 {
-                    prev = ch;
-                    ch = fgetc (graph->fp);
-                    line++;
+                    next = fgetc (graph->fp);
+                    offset++;
                 }
+
+                if (next == EOF)
+                    return EOF;
+                    
+                /* Line increment. */
+                offset = 1;
+                line++;
+
                 ch = fgetc (graph->fp);
             }
-        }
+            else if (next == '*')
+            {
+                /* Multiline comment, skip anything until we reached
+                 * its end. */
+                while (ch != '*' || next != '/')
+                {
+                    ch = next;
+                    next = fgetc (graph->fp);
+                    if (next == EOF)
+                        return EOF;
+                    offset++;
+
+                    if (next == '\n')
+                    {
+                        offset = 0;
+                        line++;
+                    }
+                }
+            }
+            else
+            {
+                ungetc (next, graph->fp);
+                return ch;
+            }
+        } /* if (ch == '/') */
         else
             return ch;
     }
@@ -155,11 +187,12 @@ as_check_valid_section (char *name)
 static int
 as_check_keyword (char *name)
 {
-    if (strcmp (name, "section") == 0)
+    if (strcmp (name, ".section") == 0)
         return SECTION;
-    if (strcmp (name, "global") == 0)
+    if (strcmp (name, ".global") == 0 || strcmp (name, ".globl") == 0)
         return GLOBAL;
-    if (strcmp (name, "extern") == 0)
+    /* Superfluous */
+    if (strcmp (name, ".extern") == 0)
         return EXTERN;
     return UNKNOWN;
 }
@@ -261,7 +294,12 @@ as_get_next_token (graph_t *graph, char **name)
             token = as_check_valid_section (*name);
             if (token != UNKNOWN)
                 return token;
-            
+
+            /* Check for .section, .global, .globl, .extern */
+            token = as_check_keyword (*name);
+            if (token != UNKNOWN)
+                return token;
+
             /* Each other is a local label */
             return UNKNOWN;
         }            
@@ -269,17 +307,11 @@ as_get_next_token (graph_t *graph, char **name)
             if (isalpha (ch) || ch == '_')
             {
                 /* [A-Z] or _ are allowed values for a name identifier. */
-                int token = UNKNOWN;
                 if (*name)
                     free (*name);
 
                 *name = as_get_name (graph, ch);
                 
-                /* Check for section, global, extern */
-                token = as_check_keyword (*name);
-                if (token != UNKNOWN)
-                    return token;
-
                 /* Check for call instructions. */
                 if (as_is_function_call (*name))
                     return CALL;
