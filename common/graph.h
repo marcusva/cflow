@@ -90,6 +90,7 @@ typedef struct _graph
     bool_t   privates;  /* Include data with a leading underscore (-i _). */
     int       depth;    /* Maximum depth. */
     char     *root;     /* The root node to use, default is "main" */
+    g_node_t *rootnode; /* The root node to use, default is "main" */
     bool_t    complete; /* Shall all nodes be printed? */
     bool_t    reversed; /* Shall it be printed in reverse order? */
     
@@ -115,7 +116,8 @@ g_node_t* add_g_node (graph_t *graph, NodeType ntype, char *name, char* type,
 void add_to_call_stack (graph_t *graph, char *function, g_subnode_t *calls);
 void free_nodes (node_t *list);
 void free_g_nodes (g_node_t *list);
-void print_graph (graph_t *graph);
 node_t* create_excludes (node_t *list, int excludes);
+
+void print_graph (graph_t *graph);
 
 #endif /* GRAPH_H */

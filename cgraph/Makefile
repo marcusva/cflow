@@ -1,7 +1,7 @@
 # $FreeBSD$
 
 PROG=	cgraph
-SRCS=	clexer.c cgraph.c graph.c
+SRCS=	clexer.c cgraph.c graph.c printgraph.c
 CLEANFILES=	*~ *.core
 MAN=	cgraph.1
 

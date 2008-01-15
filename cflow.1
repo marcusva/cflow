@@ -33,7 +33,7 @@
 .Nd build call graphs from C, Lex, Yacc and Assembler files
 .Sh SYNOPSIS
 .Nm
-.Op Fl aAcCGnpPr
+.Op Fl aAcCGgnpPr
 .Op Fl d Ar num
 .Op Fl D Ar name[=value]
 .Op Fl i Ar incl
@@ -79,6 +79,10 @@ utility. This flag only works for C source code files.
 .It Fl G
 Exclude GCC specific keywords. All keywords defined and used by the GNU
 C compiler are ignored. This flag only works for C source code files.
+.It Fl g
+Produce a
+.Cm dot(1)
+graph for graphviz output.
 .It Fl i Ar incl
 Increase the number of included symbols. The
 .Ar incl
@@ -157,7 +161,7 @@ utility is compliant with the
 specification.
 .Pp
 The flags
-.Op Fl aAcCGnPpR
+.Op Fl aAcCGgnPpR
 are extensions to the specification.
 .Sh BUGS
 TODO

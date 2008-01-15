@@ -1,7 +1,7 @@
 # $FreeBSD$
 
 PROG=	asmgraph
-SRCS=	aslexer.c nasmlexer.c asmgraph.c graph.c
+SRCS=	aslexer.c nasmlexer.c asmgraph.c graph.c printgraph.c
 CLEANFILES=	*~ *.core
 MAN=	asmgraph.1
 

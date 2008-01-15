@@ -12,11 +12,12 @@ usecpp=0
 asparams=""
 cgparams=""
 cppparams=""
+graphviz=0
 PROGNAME=$0
 # any
 usage()
 { 
-    echo "usage: $PROGNAME [-aAcCGnpPr] [-d n] [-D name[=value]] [-i x|_] [-U name]"
+    echo "usage: $PROGNAME [-aAcCGgnpPr] [-d n] [-D name[=value]] [-i x|_] [-U name]"
     echo "                [-I directory] [-R root] file"
 }
 
@@ -43,6 +44,9 @@ while getopts AcCd:D:Gi:I:hpPrR:U: arg; do
             ;;
         G)
             params="$cgparams -G"
+            ;;
+        g)
+            graphviz=1
             ;;
 	i)
 	    params="$params -i $OPTARG"
@@ -136,4 +140,5 @@ if [ $program = "cgraph" ]; then
         exit 0
     fi
 fi
+
 ./$program $params $graphfile || exit 2

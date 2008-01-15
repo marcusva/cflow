@@ -129,6 +129,7 @@ main (int argc, char *argv[])
         }
         graph.name = argv[i];
         graph.root = root;
+        graph.rootnode = NULL;
         graph.defines = NULL;
         graph.excludes = NULL;
         graph.statics = statics;
