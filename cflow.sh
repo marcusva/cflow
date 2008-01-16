@@ -12,7 +12,6 @@ usecpp=0
 asparams=""
 cgparams=""
 cppparams=""
-graphviz=0
 PROGNAME=$0
 # any
 usage()
@@ -46,7 +45,7 @@ while getopts AcCd:D:Gi:I:hpPrR:U: arg; do
             params="$cgparams -G"
             ;;
         g)
-            graphviz=1
+            params="$params -g"
             ;;
 	i)
 	    params="$params -i $OPTARG"

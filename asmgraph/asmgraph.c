@@ -46,7 +46,7 @@ static void
 usage (void)
 {
     fprintf (stderr,
-             "usage: asmgraph [-acnr] [-d num] [-i incl] [-R root] file ...\n");
+        "usage: asmgraph [-acgnr] [-d num] [-i incl] [-R root] file ...\n");
     exit (EXIT_FAILURE);
 }
 
@@ -61,12 +61,13 @@ main (int argc, char *argv[])
     int i;                   /* Counter. */
     int depth = INT_MAX;     /* Depth to traverse. */
     int parser = NASM_LEXER; 
+    bool_t graphviz = FALSE;
     bool_t complete = FALSE;
     bool_t reversed = FALSE;
 
     setlocale (LC_ALL, "");
 
-    while ((ch = getopt (argc, argv, "acd:i:nrR:")) != -1)
+    while ((ch = getopt (argc, argv, "acd:i:gnrR:")) != -1)
     {
         switch (ch)
         {
@@ -86,6 +87,9 @@ main (int argc, char *argv[])
             depth = (int) val;
             break;
         }
+        case 'g':
+            graphviz = TRUE;
+            break;
         case 'i':
             if (strlen (optarg) > 1)
                 usage ();
@@ -131,6 +135,7 @@ main (int argc, char *argv[])
         graph.root = root;
         graph.rootnode = NULL;
         graph.defines = NULL;
+        graph.defcount = 0;
         graph.excludes = NULL;
         graph.statics = statics;
         graph.privates = privates;
@@ -150,7 +155,10 @@ main (int argc, char *argv[])
             break;
         }
         fclose (graph.fp);
-        print_graph (&graph);
+        if (!graphviz)
+            print_graph (&graph);
+        else
+            print_graphviz_graph (&graph);
         free_g_nodes (graph.defines);
     }
     return 0;

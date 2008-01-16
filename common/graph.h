@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007, Marcus von Appen
+ * Copyright (c) 2007-2008, Marcus von Appen
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -86,8 +86,9 @@ typedef struct _graph
     char     *name;     /* Name of the file. */
     node_t   *excludes; /* Excluded keywords. */
     g_node_t *defines;  /* Associated definition list. */
-    bool_t   statics;   /* Include externals and static data (-i x). */
-    bool_t   privates;  /* Include data with a leading underscore (-i _). */
+    long int  defcount; /* Amount of defines. */
+    bool_t    statics;  /* Include externals and static data (-i x). */
+    bool_t    privates; /* Include data with a leading underscore (-i _). */
     int       depth;    /* Maximum depth. */
     char     *root;     /* The root node to use, default is "main" */
     g_node_t *rootnode; /* The root node to use, default is "main" */
@@ -105,7 +106,7 @@ enum
     NO_GCC_KWDS =   8
 };
 
-/* Graph functions. */
+/* Graph functions, defined in graph.c. */
 void raised_error (graph_t *graph);
 node_t* add_node (node_t *list, char *name);
 g_subnode_t *create_sub_node (g_node_t *node);
@@ -118,6 +119,8 @@ void free_nodes (node_t *list);
 void free_g_nodes (g_node_t *list);
 node_t* create_excludes (node_t *list, int excludes);
 
+/* Printing functions, defined in printgraph.c. */
 void print_graph (graph_t *graph);
+void print_graphviz_graph (graph_t *graph);
 
 #endif /* GRAPH_H */

@@ -37,7 +37,8 @@ static bool_t nodes_contain (node_t* list, char *name);
 static void print_node (g_node_t *node, int pad, size_t maxlen, int count);
 static void print_preorder (graph_t *graph, g_node_t *node, int depth,
                             size_t maxlen, int pad, int *count);
-
+static void print_graphviz_node (g_node_t *node);
+static void print_graphviz_preorder (graph_t *graph, g_node_t *node, int depth);
 
 /**
  * Qsort comparer, that compares the names of two passed g_node_t
@@ -110,7 +111,15 @@ print_node (g_node_t *node, int pad, size_t maxlen, int count)
 }
 
 /**
- * Print the graph nodes using a preorder walkthrough.
+ * Prints the graph nodes using a preorder walkthrough. 
+ *
+ * \param graph The graph_t to print.
+ * \param node The g_node_t to start from.
+ * \param depth The node depth related to its position.
+ * \param maxlen The maximum name length for the indentation on this
+ *               depth.
+ * \param pad The additional padding for the line numbers to print.
+ * \param count The amount of nodes printed already (= line number).
  */
 static void
 print_preorder (graph_t *graph, g_node_t *node, int depth, size_t maxlen,
@@ -191,11 +200,10 @@ print_callers (graph_t *graph, g_node_t *node, int depth, size_t maxlen,
     sub = node->callers;
     while (sub)
     {
-        
         /* Skip functions and data starting with an underscore on demand. */
-        if (!graph->privates && node->name[0] == '_')
+        if (!graph->privates && sub->content->name[0] == '_')
             return;
-        if (!graph->statics && node->ntype == VARIABLE)
+        if (!graph->statics && sub->content->ntype == VARIABLE)
             return;
         print_node (sub->content, pad, maxlen + sublen + 1, *count);
         (*count)++;
@@ -209,7 +217,6 @@ print_graph (graph_t *graph)
     g_node_t *cur = NULL;
     g_subnode_t *sub = NULL;
     int count = 0;
-    int defcount = 0;
     size_t maxlen = 0;
     int pad = 0;
 
@@ -228,7 +235,6 @@ print_graph (graph_t *graph)
             sub = sub->next;
         }
         count++;
-        defcount++;
         cur = cur->next;
     }
 
@@ -261,7 +267,7 @@ print_graph (graph_t *graph)
     {
         /* Print a reversed callee:caller graph. */
         int i = 0;
-        g_node_t **rev = malloc (sizeof (g_node_t *) * defcount);
+        g_node_t **rev = malloc (sizeof (g_node_t *) * graph->defcount);
         if (!rev)
         {
             fprintf (stderr, "Memory allocation error\n");
@@ -273,8 +279,193 @@ print_graph (graph_t *graph)
             cur = cur->next;
             i++;
         }
-        qsort (rev, (size_t) defcount, sizeof (g_node_t*), compare_gnodes);
-        for (i = 0; i < defcount; i++)
+        qsort (rev, (size_t) graph->defcount, sizeof (g_node_t*),
+            compare_gnodes);
+        for (i = 0; i < graph->defcount; i++)
             print_callers(graph, rev[i], 0, maxlen, pad, &count);
+        free (rev);
     }
+}
+
+static void
+print_graphviz_node (g_node_t *node)
+{
+    (node->ntype == VARIABLE) ? printf ("%s_var", node->name) :
+        printf ("%s", node->name);
+}
+
+static void
+print_graphviz_preorder (graph_t *graph, g_node_t *node, int depth)
+{
+    g_subnode_t *sub = NULL;
+    long int count = 0;
+
+    /* Skip functions and data starting with an underscore on demand. */
+    if (!graph->privates && node->name[0] == '_')
+        return;
+    if (!graph->statics && node->ntype == VARIABLE)
+        return;
+
+    /* Skip excluded keywords. */
+    if (nodes_contain (graph->excludes, node->name))
+        return;
+
+    if (node->printed)
+        return;
+    node->printed = TRUE;
+
+    if (depth >= graph->depth)
+        return;
+
+    /* Create the graphviz node links. */
+    sub = node->list;
+    while (sub)
+    {
+        /* If the subnode matches the exclude criteria, do not print it. */
+        if ((!graph->privates && sub->content->name[0] == '_') ||
+            (!graph->statics && sub->content->ntype == VARIABLE) ||
+            nodes_contain (graph->excludes, sub->content->name))
+        {
+            sub = sub->next;
+            continue;
+        }
+
+        count++;
+
+        /* Link the node. */
+        printf ("  ");
+        print_graphviz_node (node);
+        printf (" -> ");
+        print_graphviz_node (sub->content);
+        printf (" [label=\"%ld\"];\n", count);
+
+        sub = sub->next;
+    }
+
+    /* Down the tree in a preorder traversal. */
+    sub = node->list;
+    while (sub)
+    {
+        print_graphviz_preorder (graph, sub->content, depth + 1);
+        sub = sub->next;
+    }
+
+}
+
+static void
+print_graphviz_callers (graph_t *graph, g_node_t *node, int depth)
+{
+    g_subnode_t *sub = NULL;
+    long int count = 0;
+
+    /* Skip functions and data starting with an underscore on demand. */
+    if (!graph->privates && node->name[0] == '_')
+        return;
+    if (!graph->statics && node->ntype == VARIABLE)
+        return;
+
+    /* Skip excluded keywords. */
+    if (nodes_contain (graph->excludes, node->name))
+        return;
+
+    if (depth >= graph->depth)
+        return;
+
+    /* Create the graphviz node links. */
+    sub = node->callers;
+    depth += 1;
+    while (sub)
+    {
+
+        /* If the subnode matches the exclude criteria, do not print it. */
+        if ((!graph->privates && sub->content->name[0] == '_') ||
+            (!graph->statics && sub->content->ntype == VARIABLE) ||
+            nodes_contain (graph->excludes, sub->content->name))
+        {
+            sub = sub->next;
+            continue;
+        }
+
+        count++;
+
+        /* Link the node. */
+        printf ("  ");
+        print_graphviz_node (node);
+        printf (" -> ");
+        print_graphviz_node (sub->content);
+        printf (" [label=\"%ld\"];\n", count);
+
+        sub = sub->next;
+    }
+}
+
+void
+print_graphviz_graph (graph_t *graph)
+{
+    g_node_t *cur = NULL;
+
+    printf ("digraph \"%s\" {\n", graph->name);
+
+    /* Create all node descriptions first */
+    cur = graph->defines;
+    while (cur)
+    {
+        /* If the subnode matches the exclude criteria, do not print it. */
+        if ((!graph->privates && cur->name[0] == '_') ||
+            (!graph->statics && cur->ntype == VARIABLE) ||
+            nodes_contain (graph->excludes, cur->name))
+        {
+            cur = cur->next;
+            continue;
+        }
+
+        if (cur->ntype == VARIABLE)
+            printf ("  %s_var [label=\"%s\",shape=box];\n", cur->name,
+                cur->name);
+        else
+            printf ("  %s [label=\"%s\"];\n", cur->name, cur->name);
+        cur = cur->next;
+    }
+
+    cur = graph->defines;
+    if (!graph->reversed)
+    {
+        /* Usual preorder run. */
+        if (graph->rootnode)
+            print_graphviz_preorder (graph, graph->rootnode, 0);
+        else
+        {
+            while (cur)
+            {
+                if (!cur->printed)
+                    print_graphviz_preorder (graph, cur, 0);
+                cur = cur->next;
+            }
+        }
+    }
+    else
+    {
+        /* Print a reversed callee:caller graph. */
+        int i = 0;
+        g_node_t **rev = malloc (sizeof (g_node_t *) * graph->defcount);
+        if (!rev)
+        {
+            fprintf (stderr, "Memory allocation error\n");
+            raised_error(graph);
+        }
+        while (cur)
+        {
+            rev[i] = cur;
+            cur = cur->next;
+            i++;
+        }
+        qsort (rev, (size_t) graph->defcount, sizeof (g_node_t*),
+            compare_gnodes);
+        for (i = 0; i < graph->defcount; i++)
+            print_graphviz_callers (graph, rev[i], 0);
+        free (rev);
+    }
+
+    printf ("}\n");
+
 }

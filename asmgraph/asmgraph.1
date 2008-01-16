@@ -1,5 +1,5 @@
 .\"-
-.\" Copyright (c) 2007, Marcus von Appen
+.\" Copyright (c) 2007-2008, Marcus von Appen
 .\" All rights reserved.
 .\" 
 .\" Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd December 15, 2007
+.Dd January 16, 2008
 .Dt CGRAPH 1
 .Os
 .Sh NAME
@@ -33,7 +33,7 @@
 .Nd build call graphs from assembler files
 .Sh SYNOPSIS
 .Nm
-.Op Fl acnr
+.Op Fl acgnr
 .Op Fl d Ar num
 .Op Fl i Ar incl
 .Op Fl R Ar root
@@ -57,6 +57,10 @@ the same function.
 The depth at which the graph is cut off. The
 .Ar num
 argument must be a positive integer >=0.
+.It Fl g
+Produce a
+.Cm dot(1)
+graph for graphviz output.
 .It Fl i Ar incl
 Increase the number of included symbols. The
 .Ar incl

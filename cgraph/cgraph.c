@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007, Marcus von Appen
+ * Copyright (c) 2007-2008, Marcus von Appen
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ static void
 usage (void)
 {
     fprintf (stderr,
-             "usage: cgraph [-AcCGPr] [-d num] [-i incl] [-R root] file ...\n");
+             "usage: cgraph [-AcCGgPr] [-d num] [-i incl] [-R root] file ...\n");
     exit (EXIT_FAILURE);
 }
 
@@ -63,12 +63,13 @@ main (int argc, char *argv[])
     int ch;                /* Option to parse. */
     int i;                 /* Counter. */
     int depth = INT_MAX;   /* Depth to traverse. */
+    bool_t graphviz = FALSE;
     bool_t complete = FALSE;
     bool_t reversed = FALSE;
 
     setlocale (LC_ALL, "");
 
-    while ((ch = getopt (argc, argv, "AcCd:Gi:PrR:")) != -1)
+    while ((ch = getopt (argc, argv, "AcCd:Ggi:PrR:")) != -1)
     {
         switch (ch)
         {
@@ -93,6 +94,9 @@ main (int argc, char *argv[])
         }
         case 'G':
             excludes |= NO_GCC_KWDS;
+            break;
+        case 'g':
+            graphviz = TRUE;
             break;
         case 'i':
             if (strlen (optarg) > 1)
@@ -149,6 +153,7 @@ main (int argc, char *argv[])
         graph.root = root;
         graph.rootnode = NULL;
         graph.defines = NULL;
+        graph.defcount = 0;
         graph.excludes = exlist;
         graph.statics = statics;
         graph.privates = privates;
@@ -159,7 +164,10 @@ main (int argc, char *argv[])
         /* Create the graphs. */
         lex_create_graph (&graph);
         fclose (graph.fp);
-        print_graph (&graph);
+        if (!graphviz)
+            print_graph (&graph);
+        else
+            print_graphviz_graph (&graph);
         free_nodes (graph.excludes);
         free_g_nodes (graph.defines);
     }

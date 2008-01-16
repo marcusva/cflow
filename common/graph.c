@@ -272,6 +272,9 @@ add_g_node (graph_t *graph, NodeType ntype, char *name, char *type, char *file,
     if (strcmp (name, graph->root) == 0)
         graph->rootnode = add;
 
+    /* Increase the amount of existing nodes. */
+    graph->defcount++;
+
     /* First node. */
     if (!graph->defines)
     {
@@ -397,7 +400,7 @@ add_to_call_stack (graph_t *graph, char *function, g_subnode_t *calls)
             plist->next = create_sub_node (parent);
             if (!plist->next)
             {
-                fprintf (stderr, "Memory alloation error\n");
+                fprintf (stderr, "Memory allocation error\n");
                 raised_error (graph);
             }
         }
