@@ -96,7 +96,7 @@ for f in $@; do
 	    program="cgraph"
 	    graphfile=$f
             # We do not need to preprocess the file.
-            usecpp= 0
+            usecpp=0
             params="$cgparams $params"
 	    ;;
 	*.s|*.S)

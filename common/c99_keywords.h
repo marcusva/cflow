@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007, Marcus von Appen
+ * Copyright (c) 2007-2008, Marcus von Appen
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,5 +29,59 @@
 
 static char* c99_keywords[] = 
 {
+    "acosh", "acoshf", "acoshl", "asinh", "asinhf", "asinhl", "atanh",
+    "atanhl", "atanhf", "atoll",
+
+    "cabs", "cabsf", "cabsl", "cacos", "cacosf", "cacosh", "cacosl", "cacoshl",
+    "cacoshf", "carg", "cargf", "cargl", "casin", "casinf", "casinh", "casinhf",
+    "casinhl", "casinl", "catan", "catanf", "catanh", "catanhf", "catanhl",
+    "catanl", "cbrt", "cbrtf", "cbrtl", "ccos", "ccosf", "ccosh", "ccoshf",
+    "ccoshl", "ccosl", "cexp", "cexpf", "cexpl", "cimag", "cimag", "cimagf",
+    "cimagl", "clog", "clogf", "clogl", "conj", "conj", "conjf", "conjl",
+    "copysign", "copysign", "copysignf", "copysignl", "cpow", "cpowf", "cpowl",
+    "cproj", "cprojf", "cprojl", "creal", "crealf", "creall", "csin", "csinf",
+    "csinh", "csinhf", "csinhl", "csinl", "csqrt", "csqrtf", "csqrtl", "ctan",
+    "ctanf", "ctanh", "ctanhf", "ctanhl", "ctanl",
+
+    "erf", "erfc", "erfcf", "erfcl", "erff", "erfl", "exp2", "exp2f", "exp2l",
+    "expm1", "expm1f", "expm1l", 
+
+    "fdim", "fdimf", "fdiml", "feclearexept", "fegetenv", "fegetexceptflag",
+    "fegetround", "feholdexcept", "feraiseexcept", "fesetenv",
+    "fesetexceptflag", "fesetround", "fetestexcept", "feupdateenv", "fma",
+    "fmaf", "fmal", "fmax", "fmaxf", "fmaxl", "fmin", "fminf", "fminl",
+    "fpclassify", 
+
+    "hypot", "hypotf", "hypotl",
+
+    "ilogb", "ilogbf", "ilogbl", "imaginary", "imaxabs", "imaxdiv", "isblank",
+    "isfinite", "isgreater", "isgreaterequal", "isinf", "isless", "islessequal",
+    "islessgreater", "isnan", "isnormal", "isunordered", "iswblank",
+
+    "lgamma", "lgammaf", "lgammal", "llabs", "lldiv", "llrint", "llrintf",
+    "llrintl", "llround", "llroundf", "llroundl", "log1p", "log1pf", "log1pl",
+    "log2", "log2f", "log2l", "logb", "logbf", "logbl", "lrint", "lrintf",
+    "lrintl", "lround", "lroundf", "lroundl",
+
+    "nan", "nanf", "nanl", "nearbyint", "nearbyintf", "nearbyintl", "nextafter",
+    "nextafterf", "nextafterl", "nexttoward", "nexttowardf", "nexttowardl",
+
+    "powf", "powl",
+
+    "remainder", "remainderf", "remainderl", "remquo", "remquof", "remquol",
+    "rint", "rintf", "rintl", "round", "roundf", "roundl", 
+
+    "scalbln", "scalblnf", "scalblnl", "scalbn", "scalbnf", "scalbnl", "sinf",
+    "sinl", "sinhf", "sinhl", "sqrtf", "sqrtl", "snprintf", "strtof",
+    "strtoimax", "strtold", "strtoll", "strtoull", "strtoumax",
+
+    "tanf", "tanl", "tanhf", "tanhl", "tgamma", "tgammaf", "tgammal", "trunc",
+    "truncf", "truncl",
+
+    "va_copy", "vfscanf", "vfwscanf", "vscanf", "vsnprintf", "vsscanf",
+    "vswscanf", "vwscanf",
+
+    "wcstof", "wcstoimax", "wcstold", "wcstoll", "wcstoull", "wcstoumax",
+
     NULL
 };
