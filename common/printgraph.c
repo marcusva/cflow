@@ -368,6 +368,10 @@ print_graphviz_callers (graph_t *graph, g_node_t *node, int depth)
     if (nodes_contain (graph->excludes, node->name))
         return;
 
+    if (node->printed)
+        return;
+    node->printed = TRUE;
+
     if (depth >= graph->depth)
         return;
 
@@ -406,27 +410,6 @@ print_graphviz_graph (graph_t *graph)
 
     printf ("digraph \"%s\" {\n", graph->name);
 
-    /* Create all node descriptions first */
-    cur = graph->defines;
-    while (cur)
-    {
-        /* If the subnode matches the exclude criteria, do not print it. */
-        if ((!graph->privates && cur->name[0] == '_') ||
-            (!graph->statics && cur->ntype == VARIABLE) ||
-            nodes_contain (graph->excludes, cur->name))
-        {
-            cur = cur->next;
-            continue;
-        }
-
-        if (cur->ntype == VARIABLE)
-            printf ("  %s_var [label=\"%s\",shape=box];\n", cur->name,
-                cur->name);
-        else
-            printf ("  %s [label=\"%s\"];\n", cur->name, cur->name);
-        cur = cur->next;
-    }
-
     cur = graph->defines;
     if (!graph->reversed)
     {
@@ -464,6 +447,32 @@ print_graphviz_graph (graph_t *graph)
         for (i = 0; i < graph->defcount; i++)
             print_graphviz_callers (graph, rev[i], 0);
         free (rev);
+    }
+
+    /* Create all node descriptions first */
+    cur = graph->defines;
+    while (cur)
+    {
+        /* 
+         * If the subnode matches the exclude criteria, do not print it.
+         * If it was not printed already, do not show it as well as it
+         * is unlikely that it was referenced by another node.
+         */
+        if ((!graph->privates && cur->name[0] == '_') ||
+            (!graph->statics && cur->ntype == VARIABLE) ||
+            nodes_contain (graph->excludes, cur->name) ||
+            !cur->printed)
+        {
+            cur = cur->next;
+            continue;
+        }
+
+        if (cur->ntype == VARIABLE)
+            printf ("  %s_var [label=\"%s\",shape=box];\n", cur->name,
+                cur->name);
+        else
+            printf ("  %s [label=\"%s\"];\n", cur->name, cur->name);
+        cur = cur->next;
     }
 
     printf ("}\n");
