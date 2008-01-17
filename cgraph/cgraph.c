@@ -46,7 +46,7 @@ static void
 usage (void)
 {
     fprintf (stderr,
-             "usage: cgraph [-AcCGgPr] [-d num] [-i incl] [-R root] file ...\n");
+        "usage: cgraph [-AcCGgPr] [-d num] [-i incl] [-R root] file ...\n");
     exit (EXIT_FAILURE);
 }
 

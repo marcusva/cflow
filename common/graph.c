@@ -37,7 +37,7 @@ __FBSDID("$FreeBSD$");
 #include "gcc_keywords.h"
 
 static void free_g_node (g_node_t *node);
-inline node_t* add_excludes (node_t *excludes, char* keywords[]);
+static inline node_t* add_excludes (node_t *excludes, char* keywords[]);
 
 /**
  * Frees the passed g_node_t.
@@ -462,7 +462,7 @@ raised_error (graph_t *graph)
  *         error. If NULL is returned, the passed excludes are freed
  *         automatically.
  */
-inline node_t*
+static inline node_t*
 add_excludes (node_t *excludes, char* keywords[])
 {
     char **cur;

@@ -43,8 +43,8 @@ static char *curfilename = NULL;
 
 /* Forward declarations. */
 static int skip_whitespaces (graph_t *graph);
-inline int skip_strings (graph_t *graph, int delim);
-inline int skip_brackets (graph_t *graph, int delim);
+static inline int skip_strings (graph_t *graph, int delim);
+static inline int skip_brackets (graph_t *graph, int delim);
 static char* get_name (graph_t *graph, int ch);
 static int is_reserved (char *name);
 static bool_t is_c_keyword (char *name);
@@ -142,7 +142,7 @@ skip_whitespaces (graph_t *graph)
  * \param delim The delimiter character.
  * \return The next character after the delimiter or EOF.
  */
-inline int
+static inline int
 skip_strings (graph_t *graph, int delim)
 {
     int ch = '\0';
@@ -171,7 +171,7 @@ skip_strings (graph_t *graph, int delim)
  *        '[' are recognized.
  * \return The next character after the delimiter or EOF.
  */
-inline int
+static inline int
 skip_brackets (graph_t *graph, int delim)
 {
     int ch = '\0';
