@@ -108,7 +108,7 @@ enum
 
 /* Graph functions, defined in graph.c. */
 void raised_error (graph_t *graph);
-node_t* add_node (node_t *list, char *name);
+node_t* add_node (node_t *list, const char *name);
 g_subnode_t *create_sub_node (g_node_t *node);
 g_node_t* create_g_node (char *name, char *type, char *file, int line);
 g_node_t* get_definition_node (g_node_t *list, char *name);

@@ -27,7 +27,7 @@
  *
  */
 
-static char* ansi_keywords[] = 
+static const char* ansi_keywords[] = 
 {
     "abort", "atexit", "exit",
     "abs", "labs",

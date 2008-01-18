@@ -150,7 +150,7 @@ main (int argc, char *argv[])
             return 1;
         }
         graph.name = argv[i];
-        graph.root = root;
+        graph.root = (char *) root;
         graph.rootnode = NULL;
         graph.defines = NULL;
         graph.defcount = 0;

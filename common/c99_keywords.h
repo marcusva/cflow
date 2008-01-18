@@ -27,7 +27,7 @@
  *
  */
 
-static char* c99_keywords[] = 
+static const char* c99_keywords[] = 
 {
     "acosh", "acoshf", "acoshl", "asinh", "asinhf", "asinhl", "atanh",
     "atanhl", "atanhf", "atoll",

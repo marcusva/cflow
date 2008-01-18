@@ -1,8 +1,5 @@
 # $FreeBSD$
 
-SCRIPTS=cflow.sh
-MAN=	cflow.1
+SUBDIR=	asmgraph cgraph scripts
 
-SUBDIR=	asmgraph cgraph
-
-.include <bsd.prog.mk>
+.include <bsd.subdir.mk>

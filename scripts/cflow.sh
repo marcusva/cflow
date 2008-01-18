@@ -88,19 +88,19 @@ fi
 for f in $@; do
     case $f in
 	*.c|*.cc|*.C)
-	    program="cgraph"
+	    program="/usr/bin/cgraph"
 	    graphfile=$f
             params="$cgparams $params"
 	    ;;
 	*.i)
-	    program="cgraph"
+	    program="/usr/bin/cgraph"
 	    graphfile=$f
             # We do not need to preprocess the file.
             usecpp=0
             params="$cgparams $params"
 	    ;;
 	*.s|*.S)
-	    program="asmgraph"
+	    program="/usr/bin/asmgraph"
 	    graphfile=$f
             if [ $asparams = "" ]; then
                 asparams=" -n" # Implicitly use NASM syntax on demand.
@@ -108,11 +108,11 @@ for f in $@; do
             params="$asparams $params"
 	    ;;
 	*.l)
-	    program="lexgraph"
+	    program="/usr/bin/lexgraph"
 	    graphfile=$f
 	    ;;
 	*.y)
-	    program="yaccgraph"
+	    program="/usr/bin/yaccgraph"
 	    graphfile=$f
 	    ;;
 	*)
@@ -140,4 +140,4 @@ if [ $program = "cgraph" ]; then
     fi
 fi
 
-./$program $params $graphfile || exit 2
+exec $program $params $graphfile || exit 2

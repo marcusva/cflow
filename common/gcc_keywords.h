@@ -27,7 +27,7 @@
  *
  */
 
-static char *gcc_keywords[] =
+static const char *gcc_keywords[] =
 {
     "__asm__", "asm", "__attribute__",
     "__complexx__", "__real__", "__imag__",

@@ -27,7 +27,7 @@
  *
  */
 
-static char* posix_keywords[] =
+static const char* posix_keywords[] =
 {
     "_exit",
     "_longjmp", "_setjmp",

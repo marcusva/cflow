@@ -265,7 +265,7 @@ static bool_t
 is_c_keyword (char *name)
 {
     int i;
-    static char* keywords[] = {
+    static const char* keywords[] = {
         "auto", "break", "case", "const", "continue", "default", "do",
         "else", "for", "goto", "if", "inline", "return", "sizeof", "switch",
         "while", NULL
