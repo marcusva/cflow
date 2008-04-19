@@ -50,6 +50,13 @@ usage (void)
     exit (EXIT_FAILURE);
 }
 
+/**
+ * Entry point for the cgraph application. Creates a flow graph for C
+ * files according to the POSIX specification.
+ *
+ * \param argc The argument count.
+ * \param argv The argument array.
+ */
 int
 main (int argc, char *argv[])
 {
@@ -139,7 +146,7 @@ main (int argc, char *argv[])
     if (argc <= 0) /* No more arguments? */
         usage ();
 
-    /* Go through all the files and create the graph for each of it. */
+    /* Go through all the files and create a graph for each of it. */
     for (i = 0; i < argc; i++)
     {
         /* Open the file and create the graph struct to pass around. */

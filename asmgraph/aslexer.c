@@ -34,7 +34,7 @@ __FBSDID("$FreeBSD$");
 
 #include "asmgraph.h"
 
-#define DEBUG 0
+#define AS_DEBUG 0
 
 /* Marker for the current file offset(s). */
 static int offset = 0;
@@ -379,7 +379,7 @@ as_lex_create_graph (graph_t *graph)
         {
             if (!add_g_node (graph, VARIABLE, name, NULL, curfilename, line))
                 goto memerror;
-#if DEBUG
+#if AS_DEBUG
                 printf ("Adding variable declaration %s\n", name);
 #endif
         }
@@ -415,7 +415,7 @@ as_lex_create_graph (graph_t *graph)
                 if (!add_g_node (graph, FUNCTION, curname, NULL, curfilename,
                                  line))
                     goto memerror;
-#if DEBUG
+#if AS_DEBUG
                 printf ("Adding function declaration %s\n", curname);
 #endif
                 if (curfunc)
@@ -446,7 +446,7 @@ as_lex_create_graph (graph_t *graph)
             if (!sub)
                 goto memerror;
             add_to_call_stack (graph, curfunc, sub);
-#if DEBUG
+#if AS_DEBUG
                 printf ("Adding function call '%s' in func '%s', %d\n", name,
                         curfunc, line);
 #endif
@@ -462,7 +462,7 @@ as_lex_create_graph (graph_t *graph)
                 if (!sub)
                     goto memerror;
                 add_to_call_stack (graph, curfunc, sub);
-#if DEBUG
+#if AS_DEBUG
             printf ("Adding global variable call %s\n", name);
 #endif
             }

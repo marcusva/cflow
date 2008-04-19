@@ -50,6 +50,13 @@ usage (void)
     exit (EXIT_FAILURE);
 }
 
+/**
+ * Entry point for the asmgraph application. Creates a flow graph for
+ * GNU as and nasm assembler files according to the POSIX specification.
+ *
+ * \param argc The argument count.
+ * \param argv The argument array.
+ */
 int
 main (int argc, char *argv[])
 {

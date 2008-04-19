@@ -27,14 +27,13 @@
  *
  */
 
-#ifndef CGRAPH_H
-#define CGRAPH_H
+#ifndef ASMGRAPH_H
+#define ASMGRAPH_H
 
 #include "graph.h"
 
 /*
- * Possible token types. The C language specs define several constructs,
- * which have to be taken care of.
+ * Possible token types.
  */
 enum
 {
@@ -59,7 +58,7 @@ enum
 };
 
 /*
- * Assembler parse to invoke.
+ * Assembler parser to invoke.
  */
 enum
 {
@@ -70,4 +69,4 @@ enum
 void nasm_lex_create_graph (graph_t *graph);
 void as_lex_create_graph (graph_t *graph);
 
-#endif /* CGRAPH_H */
+#endif /* ASMGRAPH_H */

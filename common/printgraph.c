@@ -37,11 +37,14 @@ static bool_t nodes_contain (node_t* list, char *name);
 static void print_node (g_node_t *node, int pad, size_t maxlen, int count);
 static void print_preorder (graph_t *graph, g_node_t *node, int depth,
                             size_t maxlen, int pad, int *count);
+static void print_callers (graph_t *graph, g_node_t *node, int depth,
+                           size_t maxlen, int pad, int *count);
 static void print_graphviz_node (g_node_t *node);
 static void print_graphviz_preorder (graph_t *graph, g_node_t *node, int depth);
+static void print_graphviz_callers (graph_t *graph, g_node_t *node, int depth);
 
 /**
- * Qsort comparer, that compares the names of two passed g_node_t
+ * Qsort comparer that compares the names of two passed g_node_t
  * pointers.
  *
  * \param a The first g_node_t to compare.
@@ -165,6 +168,18 @@ print_preorder (graph_t *graph, g_node_t *node, int depth, size_t maxlen,
     }
 }
 
+
+/**
+ * Prints the graph nodes in a caller<->callee order.
+ *
+ * \param graph The graph_t to print.
+ * \param node The g_node_t to start from.
+ * \param depth The node depth related to its position.
+ * \param maxlen The maximum name length for the indentation on this
+ *               depth.
+ * \param pad The additional padding for the line numbers to print.
+ * \param count The amount of nodes printed already (= line number).
+ */
 static void
 print_callers (graph_t *graph, g_node_t *node, int depth, size_t maxlen,
                int pad, int *count)
@@ -211,6 +226,11 @@ print_callers (graph_t *graph, g_node_t *node, int depth, size_t maxlen,
     }
 }
 
+/**
+ * Prints a graph.
+ *
+ * \param graph The graph_t to print.
+ */
 void
 print_graph (graph_t *graph)
 {
@@ -287,6 +307,11 @@ print_graph (graph_t *graph)
     }
 }
 
+/**
+ * Prints a node using the graphvis conventiosn.
+ *
+ * \param node The g_node_t to print.
+ */
 static void
 print_graphviz_node (g_node_t *node)
 {
@@ -294,6 +319,15 @@ print_graphviz_node (g_node_t *node)
         printf ("%s", node->name);
 }
 
+
+/**
+ * Prints the graph nodes using a preorder walkthrough using the
+ * graphviz conventions.
+ *
+ * \param graph The graph_t to print.
+ * \param node The g_node_t to start from.
+ * \param depth The node depth related to its position.
+ */
 static void
 print_graphviz_preorder (graph_t *graph, g_node_t *node, int depth)
 {
@@ -352,6 +386,14 @@ print_graphviz_preorder (graph_t *graph, g_node_t *node, int depth)
 
 }
 
+/**
+ * Prints the graph nodes in a caller<->callee order using the graphviz
+ * conventions.
+ *
+ * \param graph The graph_t to print.
+ * \param node The g_node_t to start from.
+ * \param depth The node depth related to its position.
+ */
 static void
 print_graphviz_callers (graph_t *graph, g_node_t *node, int depth)
 {
@@ -403,6 +445,11 @@ print_graphviz_callers (graph_t *graph, g_node_t *node, int depth)
     }
 }
 
+/**
+ * Prints a graph using the graphviz conventions.
+ *
+ * \param graph The graph_t to print.
+ */
 void
 print_graphviz_graph (graph_t *graph)
 {

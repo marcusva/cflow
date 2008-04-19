@@ -34,7 +34,7 @@ __FBSDID("$FreeBSD$");
 
 #include "cgraph.h"
 
-#define DEBUG 0
+#define C_DEBUG 0
 
 /* Marker for the current file offset(s). */
 static int offset = 0;
@@ -689,7 +689,7 @@ lex_create_graph (graph_t *graph)
                     if (!curtype)
                         goto memerror;
                 }
-#if DEBUG
+#if C_DEBUG
                 if (curtype && curname)
                     printf
                         ("Found '%s %s' at line %d\n", curtype, curname, line);
@@ -746,7 +746,7 @@ lex_create_graph (graph_t *graph)
                 if (calls)
                     sub->next = calls;
                 calls = sub;
-#if DEBUG
+#if C_DEBUG
                 printf ("Adding function call '%s' in func '%s', %d\n", curname,
                         curfunc, line);
 #endif
@@ -764,7 +764,7 @@ lex_create_graph (graph_t *graph)
             if (!add_g_node (graph, FUNCTION, curname, curtype, curfilename,
                              -1))
                 goto memerror;
-#if DEBUG
+#if C_DEBUG
             printf ("Adding function declaration %s\n", curname);
 #endif
             free (curname);
@@ -782,7 +782,7 @@ lex_create_graph (graph_t *graph)
             if (!add_g_node (graph, FUNCTION, curname, curtype, curfilename,
                              funcline))
                 goto memerror;
-#if DEBUG
+#if C_DEBUG
             printf ("Adding function definition %s\n", curname);
 #endif
             if (curfunc)
@@ -808,7 +808,7 @@ lex_create_graph (graph_t *graph)
             if (!add_g_node (graph, VARIABLE, curname, curtype, curfilename,
                              line))
                 goto memerror;
-#if DEBUG
+#if C_DEBUG
             printf ("Adding global variable %s\n", curname);
 #endif
             free (curname);

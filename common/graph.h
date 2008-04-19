@@ -69,7 +69,7 @@ typedef struct _g_node
     bool_t             printed; /* Indicates, whether the node was printed. */
 } g_node_t;
 
-/* To conserver space for the directed graph we use a subnode definition
+/* To conserve space for the directed graph we use a subnode definition
  * within the g_node_t struct, which consists of a singly linked list
  * with pointers to the according g_node_t element.
  */
