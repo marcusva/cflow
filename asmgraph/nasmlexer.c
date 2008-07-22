@@ -39,35 +39,34 @@ __FBSDID("$FreeBSD$");
 /* Marker for the current file offset(s). */
 static int offset = 0;
 static int line = 0;
-static char *curfilename = NULL;
 static int curfield = 0;
 
 /* Forward declarations. */
-static int nasm_skip_whitespaces (graph_t *graph);
-inline int nasm_skip_strings (graph_t *graph, int delim);
+static int nasm_skip_whitespaces (FILE *fp);
+inline int nasm_skip_strings (FILE *fp, int delim);
 static int nasm_check_valid_section (char *name);
 static int nasm_check_keyword (char *name);
 static bool_t nasm_is_function_call (char *name);
-static char* nasm_get_name (graph_t *graph, int ch);
-static int nasm_get_next_token (graph_t *graph, char **name);
+static char* nasm_get_name (FILE *fp, int ch);
+static int nasm_get_next_token (graph_t *graph, FILE *fp, char **name);
 
 /**
  * Skips whitespaces, tabs and comments within a file buffer.
  *
- * \param graph The graph to read and skip the whitespaces for.
+ * \param fp The FILE to read and skip the whitespaces from.
  * \return The character value or EOF, if the end of the file was reached.
  */
 static int
-nasm_skip_whitespaces (graph_t *graph)
+nasm_skip_whitespaces (FILE *fp)
 {
     int ch;
 
-    if (feof (graph->fp))
+    if (feof (fp))
         return EOF;
 
     do
     {
-        ch = fgetc (graph->fp);
+        ch = fgetc (fp);
 
         if (isspace (ch))
         {
@@ -89,36 +88,36 @@ nasm_skip_whitespaces (graph_t *graph)
                 if (ch == '\\')
                 {
                     prev = ch;
-                    ch = fgetc (graph->fp);
+                    ch = fgetc (fp);
                     line++;
                 }
-                ch = fgetc (graph->fp);
+                ch = fgetc (fp);
             }
         }
         else
             return ch;
     }
-    while (!feof (graph->fp));
+    while (!feof (fp));
     return EOF;
 }
 
 /**
  * Skips characters until the certain delimiter is reached.
  *
- * \param graph The graph to read and skip the strings for.
+ * \param fp The file to read and skip the strings from.
  * \param delim The delimiter character.
  * \return The next character after the delimiter or EOF.
  */
 inline int
-nasm_skip_strings (graph_t *graph, int delim)
+nasm_skip_strings (FILE *fp, int delim)
 {
     int ch = '\0';
      
     while (ch != EOF && ch != delim)
     {
         if (ch == '\\')
-            ch = fgetc (graph->fp);
-        ch = fgetc (graph->fp);
+            ch = fgetc (fp);
+        ch = fgetc (fp);
         if (ch == '\n')
         {
             line++;
@@ -183,12 +182,12 @@ nasm_is_function_call (char *name)
  * Reads and returns a name. The return value has to be freed by the
  * caller.
  * 
- * \param The graph to read the name for.
- * \param The character to start with.
+ * \param fp The file to read the name from.
+ * \param ch The character to start with.
  * \return A valid C identifier name.
  */
 static char*
-nasm_get_name (graph_t *graph, int ch)
+nasm_get_name (FILE *fp, int ch)
 {
     char *name = NULL;
     char *tmp = NULL;
@@ -213,7 +212,7 @@ nasm_get_name (graph_t *graph, int ch)
         name[i + 1] = '\0';
         i++;
 
-        ch = fgetc (graph->fp);
+        ch = fgetc (fp);
         if (ch == EOF)
         {
             free (name);
@@ -222,7 +221,7 @@ nasm_get_name (graph_t *graph, int ch)
         offset++;
     }
     while (isalnum (ch) || ch == '_');
-    ungetc (ch, graph->fp); /* Unget the last one. It's not the name. */
+    ungetc (ch, fp); /* Unget the last one. It's not the name. */
     return name;
 }
 
@@ -230,17 +229,18 @@ nasm_get_name (graph_t *graph, int ch)
  * Gets the next valid token type from the file.
  *
  * \param graph The graph to get the next token for.
+ * \param fp The file to get the next token from.
  * \return An enum value indicating the type of token.
  */
 static int
-nasm_get_next_token (graph_t *graph, char **name)
+nasm_get_next_token (graph_t *graph, FILE *fp, char **name)
 {
     int ch;
 
     do
     {
         curfield++;
-        ch = nasm_skip_whitespaces (graph);
+        ch = nasm_skip_whitespaces (fp);
         switch (ch)
         {
         case EOF:
@@ -248,17 +248,17 @@ nasm_get_next_token (graph_t *graph, char **name)
         case '"':
         case '\'':
             /* Skip string or char literals. */
-            ch = nasm_skip_strings (graph, ch);
+            ch = nasm_skip_strings (fp, ch);
             if (ch == EOF)
                 return ENDOFFILE;
-            return nasm_get_next_token (graph, name);
+            return nasm_get_next_token (graph, fp, name);
         case '.':
         {
             /* A possible section name or local label */
             int token = UNKNOWN;
             if (*name)
                 free (*name);
-            *name = nasm_get_name (graph, ch);
+            *name = nasm_get_name (fp, ch);
             
             /* check for .bss, .data, .text */
             token = nasm_check_valid_section (*name);
@@ -276,7 +276,7 @@ nasm_get_next_token (graph_t *graph, char **name)
                 if (*name)
                     free (*name);
 
-                *name = nasm_get_name (graph, ch);
+                *name = nasm_get_name (fp, ch);
                 
                 /* Check for section, global, extern */
                 token = nasm_check_keyword (*name);
@@ -288,12 +288,12 @@ nasm_get_next_token (graph_t *graph, char **name)
                     return CALL;
 
                 /* Check for a label. */
-                ch = fgetc (graph->fp);
+                ch = fgetc (fp);
                 if (ch == EOF)
                     return ENDOFFILE;
                 if (ch == ':')
                     return LABEL;
-                ungetc (ch, graph->fp);
+                ungetc (ch, fp);
 
                 if (curfield == 0)
                     return LABEL;
@@ -312,7 +312,7 @@ nasm_get_next_token (graph_t *graph, char **name)
  * \param graph The graph object to create the output grah for.
  */
 void
-nasm_lex_create_graph (graph_t *graph)
+nasm_lex_create_graph (graph_t *graph, FILE *fp, char *filename)
 {
     char *curname = NULL; 
     char *curfunc = NULL;
@@ -323,10 +323,6 @@ nasm_lex_create_graph (graph_t *graph)
     int funcline = -1;
 
     line = 1;
-    curfilename = strdup (graph->name);
-
-    if (!curfilename)
-        goto memerror;
 
     /* nasm uses a variable 4-field syntax:
      *
@@ -336,7 +332,7 @@ nasm_lex_create_graph (graph_t *graph)
      * about the line breaks of a physical line.
      */
     while (prev = token,
-           (token = nasm_get_next_token (graph, &name)) != ENDOFFILE)
+        (token = nasm_get_next_token (graph, fp, &name)) != ENDOFFILE)
     {
         /* SECTION .XXXX: ... */
         if (token == SECTION)
@@ -357,7 +353,7 @@ nasm_lex_create_graph (graph_t *graph)
 
         if (nodetype == VARIABLE && token == LABEL)
         {
-            if (!add_g_node (graph, VARIABLE, name, NULL, curfilename, line))
+            if (!add_g_node (graph, VARIABLE, name, NULL, filename, line))
                 goto memerror;
 #if NASM_DEBUG
                 printf ("Adding variable declaration %s\n", name);
@@ -392,8 +388,8 @@ nasm_lex_create_graph (graph_t *graph)
                  * We seem to be in the correct function.
                  */
                 funcline = line;
-                if (!add_g_node (graph, FUNCTION, curname, NULL, curfilename,
-                                 line))
+                if (!add_g_node (graph, FUNCTION, curname, NULL, filename,
+                        line))
                     goto memerror;
 #if NASM_DEBUG
                 printf ("Adding function declaration %s\n", curname);
@@ -416,8 +412,7 @@ nasm_lex_create_graph (graph_t *graph)
             g_node_t *call = get_definition_node (graph->defines, name);
             if (!call)
             {
-                call = add_g_node (graph, FUNCTION, name, NULL,
-                                   curfilename, -1);
+                call = add_g_node (graph, FUNCTION, name, NULL, filename, -1);
                 if (!call)
                     goto memerror;
                 call->ntype = FUNCTION;
@@ -451,8 +446,6 @@ nasm_lex_create_graph (graph_t *graph)
     
     if (curfunc)
         free (curfunc);
-    if (curfilename)
-        free (curfilename);
     if (name)
         free (name);
 

@@ -455,7 +455,7 @@ print_graphviz_graph (graph_t *graph)
 {
     g_node_t *cur = NULL;
 
-    printf ("digraph \"%s\" {\n", graph->name);
+    printf ("digraph \"%s\" {\n", "TODO");
 
     cur = graph->defines;
     if (!graph->reversed)

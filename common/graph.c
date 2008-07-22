@@ -127,6 +127,7 @@ create_g_node (char *name, char *type, char *file, int line)
     new->next = NULL;
     new->list = NULL;
     new->callers = NULL;
+    new->private = FALSE;
     new->printed = FALSE;
     return new;
 }
@@ -257,6 +258,14 @@ add_g_node (graph_t *graph, NodeType ntype, char *name, char *type, char *file,
             {
                 add->type = strdup (type);
                 if (!add->type)
+                    return NULL;
+            }
+            if (file)
+            {
+                if (add->file)
+                    free (add->file);
+                add->file = strdup (file);
+                if (!add->file)
                     return NULL;
             }
             add->ntype = ntype;
@@ -438,6 +447,19 @@ free_g_nodes (g_node_t *list)
 }
 
 /**
+ * Frees a graph_t.
+ *
+ * \param graph The graph_t to free.
+ */
+void
+free_graph (graph_t *graph)
+{
+    free_nodes (graph->excludes);
+    free_g_nodes (graph->defines);
+    free (graph);
+}
+
+/**
  * Exits the program upon an error occurance.
  *
  * \param graph The graph to close the file handle for.
@@ -445,7 +467,6 @@ free_g_nodes (g_node_t *list)
 void
 raised_error (graph_t *graph)
 {
-    fclose (graph->fp);
     exit (EXIT_FAILURE);
 }
 

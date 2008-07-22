@@ -60,6 +60,7 @@ usage (void)
 int
 main (int argc, char *argv[])
 {
+    FILE *fp;
     int excludes = 0;      /* Bitwise combineable int to keep track of the
                             * excludes. */
     node_t *exlist = NULL; /* List of excludes. */
@@ -146,37 +147,38 @@ main (int argc, char *argv[])
     if (argc <= 0) /* No more arguments? */
         usage ();
 
+    graph.root = root;
+    graph.rootnode = NULL;
+    graph.defines = NULL;
+    graph.defcount = 0;
+    graph.excludes = exlist;
+    graph.statics = statics;
+    graph.privates = privates;
+    graph.depth = depth;
+    graph.complete = complete;
+    graph.reversed = reversed;
+
     /* Go through all the files and create a graph for each of it. */
     for (i = 0; i < argc; i++)
     {
         /* Open the file and create the graph struct to pass around. */
-        graph.fp = fopen (argv[i], "r");
-        if (!graph.fp)
+        fp = fopen (argv[i], "r");
+        if (!fp)
         {
             perror (argv[i]);
             return 1;
         }
-        graph.name = argv[i];
-        graph.root = (char *) root;
-        graph.rootnode = NULL;
-        graph.defines = NULL;
-        graph.defcount = 0;
-        graph.excludes = exlist;
-        graph.statics = statics;
-        graph.privates = privates;
-        graph.depth = depth;
-        graph.complete = complete;
-        graph.reversed = reversed;
 
         /* Create the graphs. */
-        lex_create_graph (&graph);
-        fclose (graph.fp);
-        if (!graphviz)
-            print_graph (&graph);
-        else
-            print_graphviz_graph (&graph);
-        free_nodes (graph.excludes);
-        free_g_nodes (graph.defines);
+        lex_create_graph (&graph, fp, argv[i]);
+        fclose (fp);
     }
+    if (!graphviz)
+        print_graph (&graph);
+    else
+        print_graphviz_graph (&graph);
+    free_nodes (graph.excludes);
+    free_g_nodes (graph.defines);
+
     return 0;
 }

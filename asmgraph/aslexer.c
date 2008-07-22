@@ -39,35 +39,34 @@ __FBSDID("$FreeBSD$");
 /* Marker for the current file offset(s). */
 static int offset = 0;
 static int line = 0;
-static char *curfilename = NULL;
 
 /* Forward declarations. */
-static int as_skip_whitespaces (graph_t *graph);
-inline int as_skip_strings (graph_t *graph, int delim);
+static int as_skip_whitespaces (FILE *fp);
+inline int as_skip_strings (FILE *fp, int delim);
 static int as_check_valid_section (char *name);
 static int as_check_keyword (char *name);
 static bool_t as_is_function_call (char *name);
-static char* as_get_name (graph_t *graph, int ch);
-static int as_get_next_token (graph_t *graph, char **name);
+static char* as_get_name (FILE *fp, int ch);
+static int as_get_next_token (graph_t *graph, FILE *fp, char **name);
 
 /**
  * Skips whitespaces, tabs and comments within a file buffer.
  *
- * \param graph The graph to read and skip the whitespaces for.
+ * \param fp The file to read and skip the whitespaces from.
  * \return The character value or EOF, if the end of the file was reached.
  */
 static int
-as_skip_whitespaces (graph_t *graph)
+as_skip_whitespaces (FILE *fp)
 {
     int ch;
     int next;
 
-    if (feof (graph->fp))
+    if (feof (fp))
         return EOF;
 
     do
     {
-        ch = fgetc (graph->fp);
+        ch = fgetc (fp);
 
         if (isspace (ch))
         {
@@ -80,14 +79,14 @@ as_skip_whitespaces (graph_t *graph)
         else if (ch == '/')
         {
             /* Possible comment block. */
-            next = fgetc (graph->fp);
+            next = fgetc (fp);
             offset++;
             if (next == '/')
             {
                 /* Single line comment, skip until a newline. */
                 while (next != '\n' && next != EOF)
                 {
-                    next = fgetc (graph->fp);
+                    next = fgetc (fp);
                     offset++;
                 }
 
@@ -98,7 +97,7 @@ as_skip_whitespaces (graph_t *graph)
                 offset = 1;
                 line++;
 
-                ch = fgetc (graph->fp);
+                ch = fgetc (fp);
             }
             else if (next == '*')
             {
@@ -107,7 +106,7 @@ as_skip_whitespaces (graph_t *graph)
                 while (ch != '*' || next != '/')
                 {
                     ch = next;
-                    next = fgetc (graph->fp);
+                    next = fgetc (fp);
                     if (next == EOF)
                         return EOF;
                     offset++;
@@ -121,34 +120,34 @@ as_skip_whitespaces (graph_t *graph)
             }
             else
             {
-                ungetc (next, graph->fp);
+                ungetc (next, fp);
                 return ch;
             }
         } /* if (ch == '/') */
         else
             return ch;
     }
-    while (!feof (graph->fp));
+    while (!feof (fp));
     return EOF;
 }
 
 /**
  * Skips characters until the certain delimiter is reached.
  *
- * \param graph The graph to read and skip the strings for.
+ * \param fp The file to read and skip the strings from.
  * \param delim The delimiter character.
  * \return The next character after the delimiter or EOF.
  */
 inline int
-as_skip_strings (graph_t *graph, int delim)
+as_skip_strings (FILE *fp, int delim)
 {
     int ch = '\0';
      
     while (ch != EOF && ch != delim)
     {
         if (ch == '\\')
-            ch = fgetc (graph->fp);
-        ch = fgetc (graph->fp);
+            ch = fgetc (fp);
+        ch = fgetc (fp);
         if (ch == '\n')
         {
             line++;
@@ -214,12 +213,12 @@ as_is_function_call (char *name)
  * Reads and returns a name. The return value has to be freed by the
  * caller.
  * 
- * \param The graph to read the name for.
- * \param The character to start with.
+ * \param fp The file to read the name from.
+ * \param ch The character to start with.
  * \return A valid C identifier name.
  */
 static char*
-as_get_name (graph_t *graph, int ch)
+as_get_name (FILE *fp, int ch)
 {
     char *name = NULL;
     char *tmp = NULL;
@@ -244,7 +243,7 @@ as_get_name (graph_t *graph, int ch)
         name[i + 1] = '\0';
         i++;
 
-        ch = fgetc (graph->fp);
+        ch = fgetc (fp);
         if (ch == EOF)
         {
             free (name);
@@ -253,7 +252,7 @@ as_get_name (graph_t *graph, int ch)
         offset++;
     }
     while (isalnum (ch) || ch == '_');
-    ungetc (ch, graph->fp); /* Unget the last one. It's not the name. */
+    ungetc (ch, fp); /* Unget the last one. It's not the name. */
     return name;
 }
 
@@ -261,16 +260,17 @@ as_get_name (graph_t *graph, int ch)
  * Gets the next valid token type from the file.
  *
  * \param graph The graph to get the next token for.
+ * \param fp The file to get the next token from.
  * \return An enum value indicating the type of token.
  */
 static int
-as_get_next_token (graph_t *graph, char **name)
+as_get_next_token (graph_t *graph, FILE *fp, char **name)
 {
     int ch;
 
     do
     {
-        ch = as_skip_whitespaces (graph);
+        ch = as_skip_whitespaces (fp);
         switch (ch)
         {
         case EOF:
@@ -278,17 +278,17 @@ as_get_next_token (graph_t *graph, char **name)
         case '"':
         case '\'':
             /* Skip string or char literals. */
-            ch = as_skip_strings (graph, ch);
+            ch = as_skip_strings (fp, ch);
             if (ch == EOF)
                 return ENDOFFILE;
-            return as_get_next_token (graph, name);
+            return as_get_next_token (graph, fp, name);
         case '.':
         {
             /* A possible section name or local label */
             int token = UNKNOWN;
             if (*name)
                 free (*name);
-            *name = as_get_name (graph, ch);
+            *name = as_get_name (fp, ch);
             
             /* check for .bss, .data, .text */
             token = as_check_valid_section (*name);
@@ -310,20 +310,20 @@ as_get_next_token (graph_t *graph, char **name)
                 if (*name)
                     free (*name);
 
-                *name = as_get_name (graph, ch);
+                *name = as_get_name (fp, ch);
                 
                 /* Check for call instructions. */
                 if (as_is_function_call (*name))
                     return CALL;
 
                 /* Check for a label. */
-                ch = fgetc (graph->fp);
+                ch = fgetc (fp);
                 if (ch == EOF)
                     return ENDOFFILE;
                 if (ch == ':')
                     return LABEL;
 
-                ungetc (ch, graph->fp);
+                ungetc (ch, fp);
 
                 return IDENTIFIER;
             }
@@ -339,7 +339,7 @@ as_get_next_token (graph_t *graph, char **name)
  * \param graph The graph object to create the output grah for.
  */
 void
-as_lex_create_graph (graph_t *graph)
+as_lex_create_graph (graph_t *graph, FILE *fp, char *filename)
 {
     char *curname = NULL; 
     char *curfunc = NULL;
@@ -350,13 +350,9 @@ as_lex_create_graph (graph_t *graph)
     int funcline = -1;
 
     line = 1;
-    curfilename = strdup (graph->name);
-
-    if (!curfilename)
-        goto memerror;
     
     while (prev = token,
-           (token = as_get_next_token (graph, &name)) != ENDOFFILE)
+        (token = as_get_next_token (graph, fp, &name)) != ENDOFFILE)
     {
         /* SECTION .XXXX: ... */
         if (token == SECTION)
@@ -377,7 +373,7 @@ as_lex_create_graph (graph_t *graph)
 
         if (nodetype == VARIABLE && token == LABEL)
         {
-            if (!add_g_node (graph, VARIABLE, name, NULL, curfilename, line))
+            if (!add_g_node (graph, VARIABLE, name, NULL, filename, line))
                 goto memerror;
 #if AS_DEBUG
                 printf ("Adding variable declaration %s\n", name);
@@ -412,7 +408,7 @@ as_lex_create_graph (graph_t *graph)
                  * We seem to be in the correct function.
                  */
                 funcline = line;
-                if (!add_g_node (graph, FUNCTION, curname, NULL, curfilename,
+                if (!add_g_node (graph, FUNCTION, curname, NULL, filename,
                                  line))
                     goto memerror;
 #if AS_DEBUG
@@ -436,8 +432,7 @@ as_lex_create_graph (graph_t *graph)
             g_node_t *call = get_definition_node (graph->defines, name);
             if (!call)
             {
-                call = add_g_node (graph, FUNCTION, name, NULL,
-                                   curfilename, -1);
+                call = add_g_node (graph, FUNCTION, name, NULL, filename, -1);
                 if (!call)
                     goto memerror;
                 call->ntype = FUNCTION;
@@ -471,8 +466,6 @@ as_lex_create_graph (graph_t *graph)
     
     if (curfunc)
         free (curfunc);
-    if (curfilename)
-        free (curfilename);
     if (name)
         free (name);
 

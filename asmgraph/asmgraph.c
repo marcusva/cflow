@@ -60,6 +60,7 @@ usage (void)
 int
 main (int argc, char *argv[])
 {
+    FILE *fp;
     bool_t statics = FALSE;
     bool_t privates = FALSE;
     char *root = "main";     /* Root function to use. */
@@ -132,13 +133,12 @@ main (int argc, char *argv[])
     for (i = 0; i < argc; i++)
     {
         /* Open the file and create the graph struct to pass around. */
-        graph.fp = fopen (argv[i], "r");
-        if (!graph.fp)
+        fp = fopen (argv[i], "r");
+        if (!fp)
         {
             perror (argv[i]);
             return 1;
         }
-        graph.name = argv[i];
         graph.root = root;
         graph.rootnode = NULL;
         graph.defines = NULL;
@@ -154,14 +154,14 @@ main (int argc, char *argv[])
         switch (parser)
         {
         case AS_LEXER:
-            as_lex_create_graph (&graph);
+            as_lex_create_graph (&graph, fp, argv[i]);
             break;
         case NASM_LEXER:
         default:
-            nasm_lex_create_graph (&graph);
+            nasm_lex_create_graph (&graph, fp, argv[i]);
             break;
         }
-        fclose (graph.fp);
+        fclose (fp);
         if (!graphviz)
             print_graph (&graph);
         else

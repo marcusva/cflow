@@ -66,6 +66,7 @@ typedef struct _g_node
     char              *file;    /* Definition/declaration file. */
     int                line;    /* Line where defined, not declared. */
     NodeType           ntype;   /* Type of the node. */
+    bool_t             private; /* Indicates the scope of that node. */
     bool_t             printed; /* Indicates, whether the node was printed. */
 } g_node_t;
 
@@ -82,8 +83,6 @@ typedef struct _g_subnode
 /* File struct for graphs. */
 typedef struct _graph
 {
-    FILE     *fp;       /* The file handle. */
-    char     *name;     /* Name of the file. */
     node_t   *excludes; /* Excluded keywords. */
     g_node_t *defines;  /* Associated definition list. */
     long int  defcount; /* Amount of defines. */
@@ -117,6 +116,7 @@ g_node_t* add_g_node (graph_t *graph, NodeType ntype, char *name, char* type,
 void add_to_call_stack (graph_t *graph, char *function, g_subnode_t *calls);
 void free_nodes (node_t *list);
 void free_g_nodes (g_node_t *list);
+void free_graph (graph_t *graph);
 node_t* create_excludes (node_t *list, int excludes);
 
 /* Printing functions, defined in printgraph.c. */

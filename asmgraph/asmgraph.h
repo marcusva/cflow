@@ -66,7 +66,7 @@ enum
     AS_LEXER    /* Use the parser for GNU as syntax. */
 };
 
-void nasm_lex_create_graph (graph_t *graph);
-void as_lex_create_graph (graph_t *graph);
+void nasm_lex_create_graph (graph_t *graph, FILE *fp, char *filename);
+void as_lex_create_graph (graph_t *graph, FILE *fp, char *filename);
 
 #endif /* ASMGRAPH_H */

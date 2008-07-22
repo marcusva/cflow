@@ -39,37 +39,36 @@ __FBSDID("$FreeBSD$");
 /* Marker for the current file offset(s). */
 static int offset = 0;
 static int line = 0;
-static char *curfilename = NULL;
 
 /* Forward declarations. */
-static int skip_whitespaces (graph_t *graph);
-static inline int skip_strings (graph_t *graph, int delim);
-static inline int skip_brackets (graph_t *graph, int delim);
-static char* get_name (graph_t *graph, int ch);
+static int skip_whitespaces (FILE *fp);
+static inline int skip_strings (FILE *fp, int delim);
+static inline int skip_brackets (FILE *fp, int delim);
+static char* get_name (FILE *fp, int ch);
 static int is_reserved (char *name);
 static bool_t is_c_keyword (char *name);
 static bool_t is_excluded (graph_t *graph, char *name);
-static int parse_cpp (graph_t *graph, int ch);
-static int get_next_token (graph_t *graph, char **name);
+static int parse_cpp (FILE *fp, int ch);
+static int get_next_token (graph_t *graph, FILE *fp, char **name);
 
 /**
  * Skips whitespaces, tabs and comments within a file buffer.
  *
- * \param graph The graph to read and skip the whitespaces for.
+ * \param fp The graph to read and skip the whitespaces from.
  * \return The character value or EOF, if the end of the file was reached.
  */
 static int
-skip_whitespaces (graph_t *graph)
+skip_whitespaces (FILE *fp)
 {
     int ch;
     int next;
 
-    if (feof (graph->fp))
+    if (feof (fp))
         return EOF;
 
     do
     {
-        ch = fgetc (graph->fp);
+        ch = fgetc (fp);
 
         if (isspace (ch))
         {
@@ -82,14 +81,14 @@ skip_whitespaces (graph_t *graph)
         else if (ch == '/')
         {
             /* Possible comment block. */
-            next = fgetc (graph->fp);
+            next = fgetc (fp);
             offset++;
             if (next == '/')
             {
                 /* Single line comment, skip until a newline. */
                 while (next != '\n' && next != EOF)
                 {
-                    next = fgetc (graph->fp);
+                    next = fgetc (fp);
                     offset++;
                 }
 
@@ -100,7 +99,7 @@ skip_whitespaces (graph_t *graph)
                 offset = 1;
                 line++;
 
-                ch = fgetc (graph->fp);
+                ch = fgetc (fp);
             }
             else if (next == '*')
             {
@@ -109,7 +108,7 @@ skip_whitespaces (graph_t *graph)
                 while (ch != '*' || next != '/')
                 {
                     ch = next;
-                    next = fgetc (graph->fp);
+                    next = fgetc (fp);
                     if (next == EOF)
                         return EOF;
                     offset++;
@@ -123,7 +122,7 @@ skip_whitespaces (graph_t *graph)
             }
             else
             {
-                ungetc (next, graph->fp);
+                ungetc (next, fp);
                 return ch;
             }
         } /* if (ch == '/') */
@@ -131,27 +130,27 @@ skip_whitespaces (graph_t *graph)
             return ch;
 
     }
-    while (!feof (graph->fp));
+    while (!feof (fp));
     return EOF;
 }
 
 /**
  * Skips characters until the certain delimiter is reached.
  *
- * \param graph The graph to read and skip the strings for.
+ * \param fp The file to read and skip the strings from.
  * \param delim The delimiter character.
  * \return The next character after the delimiter or EOF.
  */
 static inline int
-skip_strings (graph_t *graph, int delim)
+skip_strings (FILE *fp, int delim)
 {
     int ch = '\0';
      
     while (ch != EOF && ch != delim)
     {
         if (ch == '\\')
-            ch = fgetc (graph->fp);
-        ch = fgetc (graph->fp);
+            ch = fgetc (fp);
+        ch = fgetc (fp);
         if (ch == '\n')
         {
             line++;
@@ -166,20 +165,20 @@ skip_strings (graph_t *graph, int delim)
  * Skips characters until a matching closing bracket for the passed opening
  * bracket is reached.
  *
- * \param graph The graph to read and skip the characters for.
+ * \param fp The file to read and skip the characters from.
  * \param delim The opening bracket to use as delimiter. Only '(' and
  *        '[' are recognized.
  * \return The next character after the delimiter or EOF.
  */
 static inline int
-skip_brackets (graph_t *graph, int delim)
+skip_brackets (FILE *fp, int delim)
 {
     int ch = '\0';
     int close = (delim == '(') ? ')' : ']';
      
     while (ch != close && ch != EOF)
     {
-        ch = fgetc (graph->fp);
+        ch = fgetc (fp);
         offset++;
     }
     return ch;
@@ -189,12 +188,12 @@ skip_brackets (graph_t *graph, int delim)
  * Reads and returns a name. The return value has to be freed by the
  * caller.
  * 
- * \param The graph to read the name for.
- * \param The character to start with.
+ * \param fp The file to read the name from.
+ * \param ch The character to start with.
  * \return A valid C identifier name.
  */
 static char*
-get_name (graph_t *graph, int ch)
+get_name (FILE *fp, int ch)
 {
     char *name = NULL;
     char *tmp = NULL;
@@ -219,7 +218,7 @@ get_name (graph_t *graph, int ch)
         name[i + 1] = '\0';
         i++;
 
-        ch = fgetc (graph->fp);
+        ch = fgetc (fp);
         if (ch == EOF)
         {
             free (name);
@@ -228,7 +227,7 @@ get_name (graph_t *graph, int ch)
         offset++;
     }
     while (isalnum (ch) || ch == '_');
-    ungetc (ch, graph->fp); /* Unget the last one. It's not the name. */
+    ungetc (ch, fp); /* Unget the last one. It's not the name. */
     return name;
 }
 
@@ -303,20 +302,20 @@ is_excluded (graph_t *graph, char *name)
  * Additionally the function will update the line offset and current
  * filename scope for preprocessed files.
  *
- * \param graph The grpah to parse the directive from.
+ * \param fp The file to parse the directive from.
  * \param ch The # of the directive.
  * \return ENDOFFILE on reaching the EOF value of the file reader, or
  *         UNKNOWN, once the end of the directive is reached.
  */
 static int
-parse_cpp (graph_t *graph, int ch)
+parse_cpp (FILE *fp, int ch)
 {
 
     /* A directive. Treat those specially. */
     if (ch != '#')
         return UNKNOWN;
 
-    ch = skip_whitespaces (graph);
+    ch = skip_whitespaces (fp);
     if (isdigit (ch))
     {
         int i = 0;
@@ -324,11 +323,11 @@ parse_cpp (graph_t *graph, int ch)
         
         /* We got some # nn expression - update the line no. */
         line = ch - '0';
-        ch = fgetc (graph->fp);
+        ch = fgetc (fp);
         while (isdigit (ch))
         {
             line = line * 10 + ch - '0';
-            ch = fgetc (graph->fp);
+            ch = fgetc (fp);
             if (ch == EOF)
                 return ENDOFFILE;
         }
@@ -338,38 +337,26 @@ parse_cpp (graph_t *graph, int ch)
          * we need to preserve the filename.
          */
         while (ch != EOF && ch != '"')
-            ch = fgetc (graph->fp);
+            ch = fgetc (fp);
         if (ch == EOF)
             return ENDOFFILE;
         
         /* Get the filename. */
-        while ((ch = fgetc (graph->fp)) != '"' && ch != EOF && i < PATH_MAX - 1)
+        while ((ch = fgetc (fp)) != '"' && ch != EOF && i < PATH_MAX - 1)
             file[i++] = ch;
 
         if (ch == EOF)
             return ENDOFFILE;
-
-        if (i != 0)
-        {
-            if (curfilename)
-                free (curfilename);
-            curfilename = strdup (file);
-            if (!curfilename)
-            {
-                fprintf (stderr, "Memory allocation error for line %d\n", line);
-                raised_error (graph);
-            }
-        }
     }
 
     while (ch != '\n' && ch != EOF)
     {
         if (ch == '\\')
         {
-            ch = fgetc (graph->fp);
+            ch = fgetc (fp);
             line++;
         }
-        ch = fgetc (graph->fp);
+        ch = fgetc (fp);
     }
     if (ch == '\n')
         line++;
@@ -380,17 +367,18 @@ parse_cpp (graph_t *graph, int ch)
  * Gets the next valid token type from the file.
  *
  * \param graph The graph to get the next token for.
+ * \param fp The file to get the next token from.
  * \return An enum value indicating the type of token.
  */
 static int
-get_next_token (graph_t *graph, char **name)
+get_next_token (graph_t *graph, FILE *fp, char **name)
 {
     int ch;
     char *curname = NULL;
 
     do
     {
-        ch = skip_whitespaces (graph);
+        ch = skip_whitespaces (fp);
         switch (ch)
         {
         case EOF:
@@ -403,10 +391,10 @@ get_next_token (graph_t *graph, char **name)
         case '"':
         case '\'':
             /* Skip string or char literals. */
-            ch = skip_strings (graph, ch);
+            ch = skip_strings (fp, ch);
             if (ch == EOF)
                 return ENDOFFILE;
-            return get_next_token (graph, name);
+            return get_next_token (graph, fp, name);
 
         case '[':
             return ARRAYSTART;
@@ -418,7 +406,7 @@ get_next_token (graph_t *graph, char **name)
         case ')':
             return ARGEND;
         case '#':
-            if (parse_cpp (graph, ch) == ENDOFFILE)
+            if (parse_cpp (fp, ch) == ENDOFFILE)
                 return ENDOFFILE;
             break;
         default:
@@ -433,7 +421,7 @@ get_next_token (graph_t *graph, char **name)
                     *name = NULL;
                 }
 
-                curname = get_name (graph, ch);
+                curname = get_name (fp, ch);
 
                 /* Check for a builtin keyword. */
                 if (is_c_keyword (curname))
@@ -445,7 +433,11 @@ get_next_token (graph_t *graph, char **name)
 
                 token = is_reserved (curname);
                 if (token != UNKNOWN) /* A reserved word was found. */
+                {
+                    free (curname);
+                    *name = NULL;
                     return token;
+                }
 
                 /* Check, if the name is excluded. */
                 if (!is_excluded (graph, curname))
@@ -460,35 +452,35 @@ get_next_token (graph_t *graph, char **name)
             }
             else if (ch == '=')
             {
-                ch = fgetc (graph->fp);
+                ch = fgetc (fp);
                 if (ch != EOF && ch == '=')
                     return OPERATOR;
                 else
                 {
-                    ungetc (ch, graph->fp);
+                    ungetc (ch, fp);
                     return ASSIGN;
                 }
             }
             else if (ch == '-')
             {
-                ch = fgetc (graph->fp);
+                ch = fgetc (fp);
                 if (ch != EOF && ch == '>')
                     return REFERENCE; /* -> */
                 else
                 {
                     if (ch != '=') /* Sikp -= */
-                        ungetc (ch, graph->fp);
+                        ungetc (ch, fp);
                     return OPERATOR;
                 }
             }
             else if (ch == '+' || ch == '/' || ch == '%' || ch == '&' ||
                      ch == '~' || ch == '>' || ch == '<' || ch == '^')
             {
-                ch = fgetc (graph->fp);
+                ch = fgetc (fp);
                 if (ch != EOF && ch == '=')
                     return OPERATOR; /* +=, -= ... */
                 else
-                    ungetc (ch, graph->fp);
+                    ungetc (ch, fp);
                 return OPERATOR;
             }
             else if (ch == '*')
@@ -510,10 +502,12 @@ get_next_token (graph_t *graph, char **name)
 /**
  * Creates the output graph from the passed graph object.
  *
- * \param graph The graph object to create the output grah for.
+ * \param graph The graph object to create the output graph for.
+ * \param fp The file to create the graph for.
+ * \param filename The name of the file.
  */
 void
-lex_create_graph (graph_t *graph)
+lex_create_graph (graph_t *graph, FILE *fp, char *filename)
 {
     char *curtype = NULL;
     char *curname = NULL; 
@@ -531,11 +525,9 @@ lex_create_graph (graph_t *graph)
 
     g_subnode_t *calls = NULL;
     line = 1;
-    curfilename = strdup (graph->name);
-    if (!curfilename)
-        goto memerror;
     
-    while (prev = token, (token = get_next_token (graph, &name)) != ENDOFFILE)
+    while (prev = token,
+        (token = get_next_token (graph, fp, &name)) != ENDOFFILE)
     {
         /* Scope change. */
         if (token == BODYSTART || token == BODYEND)
@@ -735,9 +727,10 @@ lex_create_graph (graph_t *graph)
                 if (!call)
                 {
                     call = add_g_node (graph, FUNCTION, curname, curtype,
-                                       curfilename, -1);
+                                       filename, -1);
                     if (!call)
                         goto memerror;
+                    call->private = (modifier == STATIC) ? TRUE : FALSE;
                     call->ntype = FUNCTION;
                 }
                 sub = create_sub_node (call);
@@ -757,16 +750,19 @@ lex_create_graph (graph_t *graph)
 
         if (prev == ARGEND && token == SEMICOLON && !level)
         {
+            g_node_t *func;
+
             /* TYPE NAME ARGS SEMICOLON - this seems to be a function
              * declaration. */
             if (!curname || !curtype)
                 continue;
-            if (!add_g_node (graph, FUNCTION, curname, curtype, curfilename,
-                             -1))
+            func = add_g_node (graph, FUNCTION, curname, curtype, filename, -1);
+            if (!func)
                 goto memerror;
 #if C_DEBUG
             printf ("Adding function declaration %s\n", curname);
 #endif
+            func->private = (modifier == STATIC) ? TRUE : FALSE;
             free (curname);
             free (curtype);
             curname = NULL;
@@ -776,15 +772,20 @@ lex_create_graph (graph_t *graph)
         else if ((prev == ARGEND && token == BODYSTART) ||
                  (token == BODYSTART && maybeknr))
         {
+            g_node_t *func;
+
             /* TYPE NAME ARGS BODY - this seems to be a function definition. */
             if (!curname || !curtype)
                 continue;
-            if (!add_g_node (graph, FUNCTION, curname, curtype, curfilename,
-                             funcline))
+            func = add_g_node (graph, FUNCTION, curname, curtype, filename,
+                               funcline);
+            if (!func)
                 goto memerror;
 #if C_DEBUG
             printf ("Adding function definition %s\n", curname);
 #endif
+            func->private = (modifier == STATIC) ? TRUE : FALSE;
+            
             if (curfunc)
                 free (curfunc);
             curfunc = strdup (curname);
@@ -802,15 +803,19 @@ lex_create_graph (graph_t *graph)
                  (token == ASSIGN || token == SEMICOLON || token == COMMA ||
                   token == ARRAYSTART) && !maybeknr)
         {
+            g_node_t *var;
+
             /* TYPE NAME [ASSIGN, SEMICOLON, COMMA] - global variable */
             if (!curname || !curtype)
                 continue;
-            if (!add_g_node (graph, VARIABLE, curname, curtype, curfilename,
-                             line))
+            var = add_g_node (graph, VARIABLE, curname, curtype, filename,
+                              line); 
+            if (!var)
                 goto memerror;
 #if C_DEBUG
             printf ("Adding global variable %s\n", curname);
 #endif
+            var->private = (modifier == STATIC) ? TRUE : FALSE;
             free (curname);
             free (curtype);
             curname = NULL;
@@ -866,8 +871,6 @@ lex_create_graph (graph_t *graph)
 
     }
 
-    if (curfilename)
-        free (curfilename);
     if (name)
         free (name);
 
