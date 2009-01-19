@@ -1,0 +1,21 @@
+VERSION=0.0.1
+
+RM ?= rm -rf
+MKDIR ?= mkdir
+TAR ?= tar
+CP ?= cp
+
+all: clean dist
+
+dist:
+	@$(MKDIR) -p dist/cflow-$(VERSION)
+	@$(CP) -rf asmgraph dist/cflow-$(VERSION)
+	@$(CP) -rf cgraph dist/cflow-$(VERSION)
+	@$(CP) -rf common dist/cflow-$(VERSION)
+	@$(CP) -rf scripts dist/cflow-$(VERSION)
+	@$(CP) -rf test dist/cflow-$(VERSION)
+	@cd dist && $(TAR) czvf cflow-$(VERSION).tar.gz cflow-$(VERSION)
+	$(RM) dist/cflow-$(VERSION)
+
+clean:
+	$(RM) dist

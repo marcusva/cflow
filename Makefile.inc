@@ -1,5 +1,6 @@
 # $FreeBSD$
 
-WARNS?=	6
+BINDIR?= /usr/local/bin
+WARNS?= 6
 
 #.include "../Makefile.inc"

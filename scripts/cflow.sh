@@ -5,7 +5,7 @@
 : ${CC:="cc"}
 : ${CPP:="$CC -E"}
 
-progprefix?=/usr/bin
+progprefix=/usr/bin
 basename=`basename $0`
 program=""
 graphfile=""
@@ -89,7 +89,7 @@ fi
 for f in $@; do
     case $f in
 	*.c|*.cc|*.C)
-	    program="$progprefix/graph"
+	    program="$progprefix/cgraph"
 	    graphfile=$f
             params="$cgparams $params"
 	    ;;
