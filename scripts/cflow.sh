@@ -5,6 +5,7 @@
 : ${CC:="cc"}
 : ${CPP:="$CC -E"}
 
+progprefix?=/usr/bin
 basename=`basename $0`
 program=""
 graphfile=""
@@ -88,33 +89,33 @@ fi
 for f in $@; do
     case $f in
 	*.c|*.cc|*.C)
-	    program="/usr/bin/cgraph"
+	    program="$progprefix/graph"
 	    graphfile=$f
             params="$cgparams $params"
 	    ;;
 	*.i)
-	    program="/usr/bin/cgraph"
+	    program="$progprefix/cgraph"
 	    graphfile=$f
             # We do not need to preprocess the file.
             usecpp=0
             params="$cgparams $params"
 	    ;;
 	*.s|*.S)
-	    program="/usr/bin/asmgraph"
+	    program="$progprefix/asmgraph"
 	    graphfile=$f
             if [ $asparams = "" ]; then
                 asparams=" -n" # Implicitly use NASM syntax on demand.
             fi
             params="$asparams $params"
 	    ;;
-	*.l)
-	    program="/usr/bin/lexgraph"
-	    graphfile=$f
-	    ;;
-	*.y)
-	    program="/usr/bin/yaccgraph"
-	    graphfile=$f
-	    ;;
+# 	*.l)
+# 	    program="$progprefix/lexgraph"
+# 	    graphfile=$f
+# 	    ;;
+# 	*.y)
+# 	    program="$progprefix/yaccgraph"
+# 	    graphfile=$f
+# 	    ;;
 	*)
 	    usage
 	    exit 2
@@ -123,7 +124,7 @@ for f in $@; do
 done
 
 # Do we want C preprocessing?
-if [ $program = "/usr/bin/cgraph" ]; then
+if [ $program = "$progprefix/cgraph" ]; then
     if [ $usecpp -eq 1 ]; then
         # Create a temporary file for the preprocessor.
         tmpfile=`mktemp -t $basename` || exit 2
