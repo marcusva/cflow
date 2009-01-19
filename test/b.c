@@ -8,8 +8,13 @@ first_func (void)
     c = a + b;
 }
 
+static void
+second_func ()
+{
+    do_nada ();
+}
 void
 invoke_bc ()
 {
-    do_not_do_anything_here ();
+    second_func ();
 }

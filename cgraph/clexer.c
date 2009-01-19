@@ -723,7 +723,8 @@ lex_create_graph (graph_t *graph, FILE *fp, char *filename)
                 /* Function call, create the call node for the temporary
                  * call stack. */
                 g_subnode_t *sub = NULL;
-                g_node_t *call = get_definition_node (graph->defines, curname);
+                g_node_t *call = get_definition_node (graph->defines, curname,
+                                                      filename);
                 if (!call)
                 {
                     call = add_g_node (graph, FUNCTION, curname, curtype,
@@ -825,7 +826,8 @@ lex_create_graph (graph_t *graph, FILE *fp, char *filename)
         /* { ... NAME ... } - possible variable reference. */ 
         if (token == IDENTIFIER && level && curfunc)
         {
-            g_node_t *node = get_definition_node (graph->defines, name);
+            g_node_t *node = get_definition_node (graph->defines, name,
+                                                  filename);
             if (node && node->ntype == VARIABLE)
             {
                 g_subnode_t *sub = create_sub_node (node);
@@ -848,7 +850,7 @@ lex_create_graph (graph_t *graph, FILE *fp, char *filename)
                    add the calls from the stack to the current
                    function. */
                 if (calls)
-                    add_to_call_stack (graph, curfunc, calls);
+                    add_to_call_stack (graph, curfunc, filename, calls);
                 calls = NULL;
             }
         }

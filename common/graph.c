@@ -155,16 +155,27 @@ create_sub_node (g_node_t *node)
  *
  * \param list The list to get the node from.
  * \param name The NUL-terminated name to check for.
+ * \param filename The definition filename.
  * \return A g_node_t with the name or NULL if none was found.
  */
 g_node_t*
-get_definition_node (g_node_t *list, char *name)
+get_definition_node (g_node_t *list, char *name, char *filename)
 {
     g_node_t *cur = list;
     while (cur)
     {
         if (strcmp (cur->name, name) == 0)
-            return cur;
+        {
+            if (cur->private)
+            {
+                if (strcmp (cur->file, filename) == 0)
+                    return cur;
+                else
+                    cur = cur->next;
+            }
+            else
+                return cur;
+        }
         cur = cur->next;
     }
     return NULL;
@@ -248,7 +259,7 @@ add_g_node (graph_t *graph, NodeType ntype, char *name, char *type, char *file,
 
     if (line != -1)
     {
-        add = get_definition_node (graph->defines, name);
+        add = get_definition_node (graph->defines, name, file);
         if (add && add->line == -1)
         {
             /* Node was created from a call earlier. Set its type and
@@ -304,17 +315,19 @@ add_g_node (graph_t *graph, NodeType ntype, char *name, char *type, char *file,
  *
  * \param graph The graph to add the call list to.
  * \param function The name of the node to add the calls to.
+ * \param filename The definition filename.
  * \param calls The list of calls to add.
  */
 void
-add_to_call_stack (graph_t *graph, char *function, g_subnode_t *calls)
+add_to_call_stack (graph_t *graph, char *function, char *filename,
+    g_subnode_t *calls)
 {
     bool_t hascaller = FALSE;
     g_subnode_t *plist = NULL;
     g_subnode_t *tmp = NULL;
     g_subnode_t *unlink = NULL;
     g_subnode_t *prev = NULL;
-    g_node_t *parent = get_definition_node (graph->defines, function);
+    g_node_t *parent = get_definition_node (graph->defines, function, filename);
 
     if (!graph->complete)
     {

@@ -110,10 +110,11 @@ void raised_error (graph_t *graph);
 node_t* add_node (node_t *list, const char *name);
 g_subnode_t *create_sub_node (g_node_t *node);
 g_node_t* create_g_node (char *name, char *type, char *file, int line);
-g_node_t* get_definition_node (g_node_t *list, char *name);
+g_node_t* get_definition_node (g_node_t *list, char *name, char *filename);
 g_node_t* add_g_node (graph_t *graph, NodeType ntype, char *name, char* type,
                       char *file, int line);
-void add_to_call_stack (graph_t *graph, char *function, g_subnode_t *calls);
+void add_to_call_stack (graph_t *graph, char *function, char *filename,
+    g_subnode_t *calls);
 void free_nodes (node_t *list);
 void free_g_nodes (g_node_t *list);
 void free_graph (graph_t *graph);

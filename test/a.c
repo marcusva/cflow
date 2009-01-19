@@ -1,6 +1,7 @@
 static void
 second_func (void)
 {
+    here_comes_nothing_in_a ();
 }
 
 int

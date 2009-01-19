@@ -123,7 +123,7 @@ for f in $@; do
 done
 
 # Do we want C preprocessing?
-if [ $program = "cgraph" ]; then
+if [ $program = "/usr/bin/cgraph" ]; then
     if [ $usecpp -eq 1 ]; then
         # Create a temporary file for the preprocessor.
         tmpfile=`mktemp -t $basename` || exit 2

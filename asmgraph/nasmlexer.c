@@ -409,7 +409,8 @@ nasm_lex_create_graph (graph_t *graph, FILE *fp, char *filename)
         {
             /* Function call. */
             g_subnode_t *sub = NULL;
-            g_node_t *call = get_definition_node (graph->defines, name);
+            g_node_t *call = get_definition_node (graph->defines, name,
+                                                  filename);
             if (!call)
             {
                 call = add_g_node (graph, FUNCTION, name, NULL, filename, -1);
@@ -420,7 +421,7 @@ nasm_lex_create_graph (graph_t *graph, FILE *fp, char *filename)
             sub = create_sub_node (call);
             if (!sub)
                 goto memerror;
-            add_to_call_stack (graph, curfunc, sub);
+            add_to_call_stack (graph, curfunc, filename, sub);
 #if NASM_DEBUG
                 printf ("Adding function call '%s' in func '%s', %d\n", name,
                         curfunc, line);
@@ -430,13 +431,14 @@ nasm_lex_create_graph (graph_t *graph, FILE *fp, char *filename)
                  token == IDENTIFIER && curfunc && name)
         {
             /* Is this a call to a variable? */
-            g_node_t *call = get_definition_node (graph->defines, name);
+            g_node_t *call = get_definition_node (graph->defines, name,
+                                                  filename);
             if (call && call->ntype == VARIABLE)
             {
                 g_subnode_t *sub = create_sub_node (call);
                 if (!sub)
                     goto memerror;
-                add_to_call_stack (graph, curfunc, sub);
+                add_to_call_stack (graph, curfunc, filename, sub);
 #if NASM_DEBUG
             printf ("Adding global variable call %s\n", name);
 #endif

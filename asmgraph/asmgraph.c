@@ -129,6 +129,17 @@ main (int argc, char *argv[])
     if (argc <= 0) /* No more arguments? */
         usage ();
 
+    graph.root = root;
+    graph.rootnode = NULL;
+    graph.defines = NULL;
+    graph.defcount = 0;
+    graph.excludes = NULL;
+    graph.statics = statics;
+    graph.privates = privates;
+    graph.depth = depth;
+    graph.complete = complete;
+    graph.reversed = reversed;
+
     /* Go through all the files and create the graph for each of it. */
     for (i = 0; i < argc; i++)
     {
@@ -139,17 +150,6 @@ main (int argc, char *argv[])
             perror (argv[i]);
             return 1;
         }
-        graph.root = root;
-        graph.rootnode = NULL;
-        graph.defines = NULL;
-        graph.defcount = 0;
-        graph.excludes = NULL;
-        graph.statics = statics;
-        graph.privates = privates;
-        graph.depth = depth;
-        graph.complete = complete;
-        graph.reversed = reversed;
-
         /* Create the graphs. */
         switch (parser)
         {
@@ -162,11 +162,12 @@ main (int argc, char *argv[])
             break;
         }
         fclose (fp);
-        if (!graphviz)
-            print_graph (&graph);
-        else
-            print_graphviz_graph (&graph);
-        free_g_nodes (graph.defines);
     }
+    if (!graphviz)
+        print_graph (&graph);
+    else
+        print_graphviz_graph (&graph);
+    free_nodes (graph.excludes);
+    free_g_nodes (graph.defines);
     return 0;
 }
