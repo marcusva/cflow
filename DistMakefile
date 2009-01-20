@@ -16,6 +16,7 @@ dist:
 	@$(CP) -rf test dist/cflow-$(VERSION)
 	@$(CP) -rf NEWS dist/cflow-$(VERSION)
 	@$(CP) -rf AUTHORS dist/cflow-$(VERSION)
+	@$(CP) -rf Makefile dist/cflow-$(VERSION)
 	@cd dist && $(TAR) czvf cflow-$(VERSION).tar.gz cflow-$(VERSION)
 	$(RM) dist/cflow-$(VERSION)
 
