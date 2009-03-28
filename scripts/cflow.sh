@@ -13,6 +13,7 @@ usecpp=0
 asparams=""
 cgparams=""
 cppparams=""
+programset=""
 PROGNAME=$0
 # any
 usage()
@@ -36,9 +37,9 @@ while getopts AcCd:D:Gi:I:hpPrR:U: arg; do
         C)
             cgparams="$cgparams -C"
             ;;
-	d)
-	    params="$params -d $OPTARG"
-	    ;;
+        d)
+            params="$params -d $OPTARG"
+            ;;
         D)
             cppparams="$cppparams -D $OPTARG"
             ;;
@@ -48,18 +49,18 @@ while getopts AcCd:D:Gi:I:hpPrR:U: arg; do
         g)
             params="$params -g"
             ;;
-	i)
-	    params="$params -i $OPTARG"
-	    ;;
+        i)
+            params="$params -i $OPTARG"
+            ;;
         I)
             cppparams="$cppparams -I $OPTARG"
             ;;
         n)
             asparams="$asparams -n"
             ;;
-	p)
-	    usecpp=1
-	    ;;
+        p)
+            usecpp=1
+            ;;
         P)
             params="$cgparams -P"
             ;;
@@ -72,9 +73,9 @@ while getopts AcCd:D:Gi:I:hpPrR:U: arg; do
         U)
             cppparams="$cppparams -U $OPTARG"
             ;;
-	\? | h)
-	    usage
-	    exit 2
+        \? | h)
+            usage
+            exit 2
     esac
 done
 
@@ -88,38 +89,62 @@ fi
 # Check for the file and invoke the correct graph generator.
 for f in $@; do
     case $f in
-	*.c|*.cc|*.C)
+        *.c|*.cc|*.C)
+            if [ $programset != "c" ]; then
+                echo "Can not parse different types of files"
+                exit 2
+            fi
 	    program="$progprefix/cgraph"
-	    graphfile=$f
+            programset="c"
+            graphfile="$graphfile $f"
             params="$cgparams $params"
-	    ;;
-	*.i)
-	    program="$progprefix/cgraph"
-	    graphfile=$f
-            # We do not need to preprocess the file.
+            ;;
+        *.i)
+            if [ $programset != "c" ]; then
+                echo "Can not parse different types of files"
+                exit 2
+            fi
+            program="$progprefix/cgraph"
+            graphfile="$graphfile $f"
+           # We do not need to preprocess the file.
             usecpp=0
             params="$cgparams $params"
-	    ;;
-	*.s|*.S)
-	    program="$progprefix/asmgraph"
-	    graphfile=$f
+            ;;
+        *.s|*.S)
+            if [ $programset != "asm" ]; then
+                echo "Can not parse different types of files"
+                exit 2
+            fi
+            program="$progprefix/asmgraph"
+            programset="asm"
+            graphfile="graphfile $f"
             if [ $asparams = "" ]; then
                 asparams=" -n" # Implicitly use NASM syntax on demand.
             fi
             params="$asparams $params"
-	    ;;
-# 	*.l)
-# 	    program="$progprefix/lexgraph"
-# 	    graphfile=$f
-# 	    ;;
-# 	*.y)
-# 	    program="$progprefix/yaccgraph"
-# 	    graphfile=$f
-# 	    ;;
-	*)
-	    usage
-	    exit 2
-	    ;;
+            ;;
+#         *.l)
+#             if [ $programset != "lex" ]; then
+#                 echo "Can not parse different types of files"
+#                 exit 2
+#             fi
+#             program="$progprefix/lexgraph"
+#             programset="lex"
+#             graphfile="$graphfile $f"
+#             ;;
+#         *.y)
+#             if [ $programset != "yacc" ]; then
+#                 echo "Can not parse different types of files"
+#                 exit 2
+#             fi
+#             program="$progprefix/yaccgraph"
+#             programset="yacc"
+#             graphfile="$graphfile $f"
+#             ;;
+        *)
+            usage
+            exit 2
+            ;;
     esac
 done
 
@@ -128,7 +153,7 @@ if [ $program = "$progprefix/cgraph" ]; then
     if [ $usecpp -eq 1 ]; then
         # Create a temporary file for the preprocessor.
         tmpfile=`mktemp -t $basename` || exit 2
-	
+        
         $CPP $cppparams $graphfile > $tmpfile
         ./$program $params $tmpfile || {
             rm $tmpfile

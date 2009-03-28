@@ -1,3 +1,8 @@
+0.0.2 2009-03-28:
+-----------------
+* Added GNU make support in gnu/.
+* Fixed multiple file targets for cflow script.
+
 0.0.1 2009-01-20:
 -----------------
 * Initial release
