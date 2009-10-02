@@ -269,7 +269,7 @@ is_c_keyword (char *name)
     static const char* keywords[] = {
         "auto", "break", "case", "const", "continue", "default", "do",
         "else", "for", "goto", "if", "inline", "return", "sizeof", "switch",
-        "while", NULL
+        "volatile", "while", NULL
     };
 
     for (i = 0; keywords[i] != NULL; i++)
