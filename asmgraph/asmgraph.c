@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2008, Marcus von Appen
+ * Copyright (c) 2007-2009, Marcus von Appen
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef __FreeBSD__
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
+#endif
 
 #include <limits.h>
 #include <stdlib.h>
@@ -63,7 +65,7 @@ main (int argc, char *argv[])
     FILE *fp;
     bool_t statics = FALSE;
     bool_t privates = FALSE;
-    char *root = "main";     /* Root function to use. */
+    char *root = NULL;       /* Root function to use. */
     graph_t graph;           /* Actual graph to process. */
     int ch;                  /* Option to parse. */
     int i;                   /* Counter. */
@@ -129,7 +131,7 @@ main (int argc, char *argv[])
     if (argc <= 0) /* No more arguments? */
         usage ();
 
-    graph.root = root;
+    graph.root = (root) ? root : "main";
     graph.rootnode = NULL;
     graph.defines = NULL;
     graph.defcount = 0;
@@ -143,6 +145,7 @@ main (int argc, char *argv[])
     /* Go through all the files and create the graph for each of it. */
     for (i = 0; i < argc; i++)
     {
+        bool_t retval = FALSE;
         /* Open the file and create the graph struct to pass around. */
         fp = fopen (argv[i], "r");
         if (!fp)
@@ -154,14 +157,16 @@ main (int argc, char *argv[])
         switch (parser)
         {
         case AS_LEXER:
-            as_lex_create_graph (&graph, fp, argv[i]);
+            retval = as_lex_create_graph (&graph, fp, argv[i]);
             break;
         case NASM_LEXER:
         default:
-            nasm_lex_create_graph (&graph, fp, argv[i]);
+            retval = nasm_lex_create_graph (&graph, fp, argv[i]);
             break;
         }
         fclose (fp);
+        if (!retval)
+            return 1;
     }
     if (!graphviz)
         print_graph (&graph);

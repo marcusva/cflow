@@ -24,8 +24,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef __FreeBSD__
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
+#endif
 
 #include <limits.h>
 #include <ctype.h>
@@ -337,8 +339,9 @@ as_get_next_token (graph_t *graph, FILE *fp, char **name)
  * Creates the output graph from the passed graph object.
  *
  * \param graph The graph object to create the output grah for.
+ * \return TRUE on success, FALSE on error.
  */
-void
+bool_t
 as_lex_create_graph (graph_t *graph, FILE *fp, char *filename)
 {
     char *curname = NULL; 
@@ -441,7 +444,8 @@ as_lex_create_graph (graph_t *graph, FILE *fp, char *filename)
             sub = create_sub_node (call);
             if (!sub)
                 goto memerror;
-            add_to_call_stack (graph, curfunc, filename, sub);
+            if (!add_to_call_stack (graph, curfunc, filename, sub))
+                goto error;
 #if AS_DEBUG
                 printf ("Adding function call '%s' in func '%s', %d\n", name,
                         curfunc, line);
@@ -458,7 +462,8 @@ as_lex_create_graph (graph_t *graph, FILE *fp, char *filename)
                 g_subnode_t *sub = create_sub_node (call);
                 if (!sub)
                     goto memerror;
-                add_to_call_stack (graph, curfunc, filename, sub);
+                if (!add_to_call_stack (graph, curfunc, filename, sub))
+                    goto error;
 #if AS_DEBUG
             printf ("Adding global variable call %s\n", name);
 #endif
@@ -470,10 +475,11 @@ as_lex_create_graph (graph_t *graph, FILE *fp, char *filename)
         free (curfunc);
     if (name)
         free (name);
-
-    return;
+    return TRUE;
 
 memerror:
-    fprintf (stderr, "Memory allocation error for line %d\n", line);
-    raised_error (graph);
+    fprintf (stderr, "%s: Memory allocation error for line %d\n", filename,
+        line);
+error:
+    return FALSE;
 }

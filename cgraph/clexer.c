@@ -24,8 +24,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef __FreeBSD__
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
+#endif
 
 #include <limits.h>
 #include <ctype.h>
@@ -505,8 +507,9 @@ get_next_token (graph_t *graph, FILE *fp, char **name)
  * \param graph The graph object to create the output graph for.
  * \param fp The file to create the graph for.
  * \param filename The name of the file.
+ * \return TRUE on success, FALSE on error.
  */
-void
+bool_t
 lex_create_graph (graph_t *graph, FILE *fp, char *filename)
 {
     char *curtype = NULL;
@@ -536,8 +539,9 @@ lex_create_graph (graph_t *graph, FILE *fp, char *filename)
             if (level < 0)
             {
                 /* That should not happen. */
-                fprintf (stderr, "Brace level mismatch at line %d\n", line);
-                raised_error (graph);
+                fprintf (stderr, "%s: Brace level mismatch at line %d\n",
+                    filename, line);
+                goto error;
             }
             if (!level && curfunc)
             {
@@ -553,8 +557,9 @@ lex_create_graph (graph_t *graph, FILE *fp, char *filename)
             if (arglevel < 0)
             {
                 /* That should not happen. */
-                fprintf (stderr, "Brace level mismatch at line %d\n", line);
-                raised_error (graph);
+                fprintf (stderr, "%s: Brace level mismatch at line %d\n",
+                    filename, line);
+                goto error;
             }
         }
 
@@ -850,7 +855,10 @@ lex_create_graph (graph_t *graph, FILE *fp, char *filename)
                    add the calls from the stack to the current
                    function. */
                 if (calls)
-                    add_to_call_stack (graph, curfunc, filename, calls);
+                {
+                    if (!add_to_call_stack (graph, curfunc, filename, calls))
+                        goto error;
+                }
                 calls = NULL;
             }
         }
@@ -870,15 +878,15 @@ lex_create_graph (graph_t *graph, FILE *fp, char *filename)
             
             istypedef = FALSE;
         }
-
     }
 
     if (name)
         free (name);
-
-    return;
+    return TRUE;
 
 memerror:
-    fprintf (stderr, "Memory allocation error for line %d\n", line);
-    raised_error (graph);
+    fprintf (stderr, "%s: Memory allocation error for line %d\n", filename,
+        line);
+error:
+    return FALSE;
 }

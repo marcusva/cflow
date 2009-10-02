@@ -1,9 +1,14 @@
-CC?= cc
-RM = rm -rf 
+PREFIX?=/usr/local
+MANDIR?=$(PREFIX)/share/man
+MAN1DIR=$(MANDIR)/man1
+
+CC ?= cc
+RM ?= rm -f
 MKDIR ?= mkdir -p
-CFLAGS ?= -W -Wall
+CFLAGS ?= -pipe -O2 -W -Wall
 LDFLAGS ?=
 GZIP ?= gzip
+SED ?= sed
 INSTALL ?= install
 
 ASMPROG= asmgraph
@@ -48,15 +53,25 @@ asmgraph: $(ASMOBJS) $(CMOBJS)
 $(COBJS): bld/%.o: ../%.c $(CMOBJS)
 	$(CC) -c $(CFLAGS) $(CCFLAGS) -c -o $@ ../$*.c
 
-
 cgraph: $(COBJS) $(CMOBJS)
 	$(CC) $(LDFLAGS) $(CLDFLAGS) $(COBJS) $(CMOBJS) -o $(CPROG)
 	$(GZIP) -cn ../cgraph/$(CMAN) > $(CMAN).gz
 
 cflow:
-	$(INSTALL) -c -m 0755 ../scripts/$(CFLOW).sh $(CFLOW)
+	$(SED) -e "s|progprefix=/usr/bin|progprefix=$(PREFIX)/bin|g" ../scripts/$(CFLOW).sh > $(CFLOW)
 	$(GZIP) -cn ../scripts/$(CFLOWMAN) > $(CFLOWMAN).gz
 
 clean:
-	$(RM) $(ASMPROG) $(CPROG) $(CFLOW) bld/
+	$(RM) $(ASMPROG) $(CPROG) $(CFLOW)
+	$(RM) -r bld/
 	$(RM) $(CFLOWMAN).gz $(CMAN).gz $(ASMMAN).gz
+
+install: mkdirs build
+	$(INSTALL) -d $(PREFIX)/bin
+	$(INSTALL) -c -m 0755 $(CFLOW) $(PREFIX)/bin/$(CFLOW)
+	$(INSTALL) -c -m 0755 $(ASMPROG) $(PREFIX)/bin/$(ASMPROG)
+	$(INSTALL) -c -m 0755 $(CPROG) $(PREFIX)/bin/$(CPROG)
+	$(INSTALL) -d $(MAN1DIR)
+	$(INSTALL) -c -m 0644 $(CFLOWMAN).gz $(MAN1DIR)/$(CFLOWMAN).gz
+	$(INSTALL) -c -m 0644 $(ASMMAN).gz $(MAN1DIR)/$(ASMMAN).gz
+	$(INSTALL) -c -m 0644 $(CMAN).gz $(MAN1DIR)/$(CMAN).gz

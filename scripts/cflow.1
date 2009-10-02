@@ -25,7 +25,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd January 15, 2008
+.Dd October 1, 2009
 .Dt CFLOW 1
 .Os
 .Sh NAME
@@ -36,6 +36,7 @@
 .Op Fl aAcCGgnpPr
 .Op Fl d Ar num
 .Op Fl D Ar name[=value]
+.Op Fl f Ar filelist
 .Op Fl i Ar incl
 .Op Fl I Ar directory
 .Op Fl U Ar name
@@ -75,7 +76,11 @@ exactly like the
 .Op Fl D
 argument of the
 .Cm c99(1)
-utility. This flag only works for C source code files.
+utility. This flag only works for C source code files and implicitily sets the
+.Op Fl p argument.
+.It Fl f Ar filelist
+Use a list of files to scan instead of trailing arguments. This is useful for
+processing lots of files without typing in each one.
 .It Fl G
 Exclude GCC specific keywords. All keywords defined and used by the GNU
 C compiler are ignored. This flag only works for C source code files.
@@ -101,7 +106,8 @@ exactly like the
 .Op Fl I
 argument of the
 .Cm c99(1)
-utility. This flag only works for C source code files.
+utility. This flag only works for C source code files and implicitily sets the
+.Op Fl p argument.
 .It Fl n
 Use the
 .Cm nasm(1)
@@ -134,7 +140,8 @@ This option behaves exactly like the
 .Op Fl U 
 argument of the
 .Cm c99(1)
-utility. This flag only works for C source code files.
+utility. This flag only works for C source code files and implicitily sets the
+.Op Fl p argument.
 .Sh EXAMPLES
 TODO
 .Sh EXIT STATUS
@@ -161,7 +168,7 @@ utility is compliant with the
 specification.
 .Pp
 The flags
-.Op Fl aAcCGgnPpR
+.Op Fl aAcCfGgnPpR
 are extensions to the specification.
 .Sh BUGS
 TODO

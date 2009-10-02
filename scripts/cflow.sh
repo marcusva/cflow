@@ -6,7 +6,6 @@
 : ${CPP:="$CC -E"}
 
 progprefix=/usr/bin
-basename=`basename $0`
 program=""
 graphfile=""
 usecpp=0
@@ -14,16 +13,17 @@ asparams=""
 cgparams=""
 cppparams=""
 programset=""
-PROGNAME=$0
+fileargs=""
+PROGNAME=`basename $0`
 # any
 usage()
 { 
     echo "usage: $PROGNAME [-aAcCGgnpPr] [-d n] [-D name[=value]] [-i x|_] [-U name]"
-    echo "                [-I directory] [-R root] file"
+    echo "                [-I directory] [-R root] file ... "
 }
 
 # Check the arguments.
-while getopts AcCd:D:Gi:I:hpPrR:U: arg; do
+while getopts AcCd:D:gGi:I:hpPrR:U: arg; do
     case $arg in
         a)
             asparams="$asparams -a"
@@ -42,6 +42,7 @@ while getopts AcCd:D:Gi:I:hpPrR:U: arg; do
             ;;
         D)
             cppparams="$cppparams -D $OPTARG"
+            usecpp=1
             ;;
         G)
             params="$cgparams -G"
@@ -54,6 +55,7 @@ while getopts AcCd:D:Gi:I:hpPrR:U: arg; do
             ;;
         I)
             cppparams="$cppparams -I $OPTARG"
+            usecpp=1
             ;;
         n)
             asparams="$asparams -n"
@@ -72,6 +74,7 @@ while getopts AcCd:D:Gi:I:hpPrR:U: arg; do
             ;;
         U)
             cppparams="$cppparams -U $OPTARG"
+            usecpp=1
             ;;
         \? | h)
             usage
@@ -90,35 +93,35 @@ fi
 for f in $@; do
     case $f in
         *.c|*.cc|*.C)
-            if [ $programset != "c" ]; then
+            if [ -n "$programset" -a "$programset" != "c" ]; then
                 echo "Can not parse different types of files"
                 exit 2
             fi
-	    program="$progprefix/cgraph"
+            program="$progprefix/cgraph"
             programset="c"
             graphfile="$graphfile $f"
             params="$cgparams $params"
             ;;
         *.i)
-            if [ $programset != "c" ]; then
+            if [ -n "$programset" -a "$programset" != "c" ]; then
                 echo "Can not parse different types of files"
                 exit 2
             fi
             program="$progprefix/cgraph"
             graphfile="$graphfile $f"
-           # We do not need to preprocess the file.
+            # We do not need to preprocess the file.
             usecpp=0
             params="$cgparams $params"
             ;;
         *.s|*.S)
-            if [ $programset != "asm" ]; then
+            if [ -n "$programset" -a "$programset" != "asm" ]; then
                 echo "Can not parse different types of files"
                 exit 2
             fi
             program="$progprefix/asmgraph"
             programset="asm"
             graphfile="graphfile $f"
-            if [ $asparams = "" ]; then
+            if [ "$asparams" = "" ]; then
                 asparams=" -n" # Implicitly use NASM syntax on demand.
             fi
             params="$asparams $params"
@@ -149,10 +152,10 @@ for f in $@; do
 done
 
 # Do we want C preprocessing?
-if [ $program = "$progprefix/cgraph" ]; then
+if [ "$program" = "$progprefix/cgraph" ]; then
     if [ $usecpp -eq 1 ]; then
         # Create a temporary file for the preprocessor.
-        tmpfile=`mktemp -t $basename` || exit 2
+        tmpfile=`mktemp -t $PROGNAME` || exit 2
         
         $CPP $cppparams $graphfile > $tmpfile
         ./$program $params $tmpfile || {

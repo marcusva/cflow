@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2008, Marcus von Appen
+ * Copyright (c) 2007-2009, Marcus von Appen
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef __FreeBSD__
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -54,7 +56,8 @@ static void print_graphviz_callers (graph_t *graph, g_node_t *node, int depth);
 static int
 compare_gnodes (const void *a, const void *b)
 {
-    return strcmp ((*(g_node_t**)a)->name, (*(g_node_t**)b)->name);
+    
+    return strcmp ((*(g_node_t* const*)a)->name, (*(g_node_t* const*)b)->name);
 }
 
 /**
@@ -93,24 +96,24 @@ print_node (g_node_t *node, int pad, size_t maxlen, int count)
         if (node->ntype == VARIABLE)
         {
             if (!node->type)
-                printf ("%*d %*s: <%s %d>\n", pad, count, maxlen,
+                printf ("%*d %*s: <%s %d>\n", pad, count, (int)maxlen,
                         node->name, node->file, node->line);
             else
-                printf ("%*d %*s: %s, <%s %d>\n", pad, count, maxlen,
+                printf ("%*d %*s: %s, <%s %d>\n", pad, count, (int)maxlen,
                         node->name, node->type, node->file, node->line);
         }
         else
         {
             if (!node->type)
-                printf ("%*d %*s: (), <%s %d>\n", pad, count, maxlen,
+                printf ("%*d %*s: (), <%s %d>\n", pad, count, (int)maxlen,
                         node->name, node->file, node->line);
             else
-                printf ("%*d %*s: %s(), <%s %d>\n", pad, count, maxlen,
+                printf ("%*d %*s: %s(), <%s %d>\n", pad, count, (int)maxlen,
                         node->name, node->type, node->file, node->line);
         }
     }
     else
-        printf ("%*d %*s: <>\n", pad, count, maxlen, node->name);
+        printf ("%*d %*s: <>\n", pad, count, (int)maxlen, node->name);
 }
 
 /**
@@ -291,7 +294,7 @@ print_graph (graph_t *graph)
         if (!rev)
         {
             fprintf (stderr, "Memory allocation error\n");
-            raised_error(graph);
+            return;
         }
         while (cur)
         {
@@ -481,7 +484,7 @@ print_graphviz_graph (graph_t *graph)
         if (!rev)
         {
             fprintf (stderr, "Memory allocation error\n");
-            raised_error(graph);
+            return;
         }
         while (cur)
         {

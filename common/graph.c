@@ -24,8 +24,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef __FreeBSD__
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -317,8 +319,9 @@ add_g_node (graph_t *graph, NodeType ntype, char *name, char *type, char *file,
  * \param function The name of the node to add the calls to.
  * \param filename The definition filename.
  * \param calls The list of calls to add.
+ * \return TRUE on success, FALSE on error.
  */
-void
+bool_t
 add_to_call_stack (graph_t *graph, char *function, char *filename,
     g_subnode_t *calls)
 {
@@ -399,7 +402,7 @@ add_to_call_stack (graph_t *graph, char *function, char *filename,
             if (!tmp->content->callers)
             {
                 fprintf (stderr, "Memory alloation error\n");
-                raised_error (graph);
+                return FALSE;
             }
             tmp = tmp->next;
             continue;
@@ -423,7 +426,7 @@ add_to_call_stack (graph_t *graph, char *function, char *filename,
             if (!plist->next)
             {
                 fprintf (stderr, "Memory allocation error\n");
-                raised_error (graph);
+                return FALSE;
             }
         }
         tmp = tmp->next;
@@ -438,6 +441,7 @@ add_to_call_stack (graph_t *graph, char *function, char *filename,
     }
     else
         parent->list = calls;
+    return TRUE;
 }
 
 /**
@@ -470,17 +474,6 @@ free_graph (graph_t *graph)
     free_nodes (graph->excludes);
     free_g_nodes (graph->defines);
     free (graph);
-}
-
-/**
- * Exits the program upon an error occurance.
- *
- * \param graph The graph to close the file handle for.
- */
-void
-raised_error (graph_t *graph)
-{
-    exit (EXIT_FAILURE);
 }
 
 /**

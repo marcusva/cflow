@@ -83,16 +83,16 @@ typedef struct _g_subnode
 /* File struct for graphs. */
 typedef struct _graph
 {
-    node_t   *excludes; /* Excluded keywords. */
-    g_node_t *defines;  /* Associated definition list. */
-    long int  defcount; /* Amount of defines. */
-    bool_t    statics;  /* Include externals and static data (-i x). */
-    bool_t    privates; /* Include data with a leading underscore (-i _). */
-    int       depth;    /* Maximum depth. */
-    char     *root;     /* The root node to use, default is "main" */
-    g_node_t *rootnode; /* The root node to use, default is "main" */
-    bool_t    complete; /* Shall all nodes be printed? */
-    bool_t    reversed; /* Shall it be printed in reverse order? */
+    node_t     *excludes; /* Excluded keywords. */
+    g_node_t   *defines;  /* Associated definition list. */
+    long int    defcount; /* Amount of defines. */
+    bool_t      statics;  /* Include externals and static data (-i x). */
+    bool_t      privates; /* Include data with a leading underscore (-i _). */
+    int         depth;    /* Maximum depth. */
+    const char *root;     /* The root node to use, default is "main" */
+    g_node_t   *rootnode; /* The root node to use, default is "main" */
+    bool_t      complete; /* Shall all nodes be printed? */
+    bool_t      reversed; /* Shall it be printed in reverse order? */
     
 } graph_t;
 
@@ -106,15 +106,14 @@ enum
 };
 
 /* Graph functions, defined in graph.c. */
-void raised_error (graph_t *graph);
 node_t* add_node (node_t *list, const char *name);
 g_subnode_t *create_sub_node (g_node_t *node);
 g_node_t* create_g_node (char *name, char *type, char *file, int line);
 g_node_t* get_definition_node (g_node_t *list, char *name, char *filename);
 g_node_t* add_g_node (graph_t *graph, NodeType ntype, char *name, char* type,
                       char *file, int line);
-void add_to_call_stack (graph_t *graph, char *function, char *filename,
-    g_subnode_t *calls);
+bool_t add_to_call_stack (graph_t *graph, char *function, char *filename,
+                          g_subnode_t *calls);
 void free_nodes (node_t *list);
 void free_g_nodes (g_node_t *list);
 void free_graph (graph_t *graph);

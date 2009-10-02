@@ -66,6 +66,6 @@ enum
     IDENTIFIER    /* An identifier like 'i' or 'strcmp'. */
 };
 
-void lex_create_graph (graph_t *graph, FILE *fp, char *filename);
+bool_t lex_create_graph (graph_t *graph, FILE *fp, char *filename);
 
 #endif /* CGRAPH_H */
