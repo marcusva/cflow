@@ -40,13 +40,13 @@ static const char* ansi_keywords[] =
 
     "calloc", "malloc", "realloc", "free",
     "ceil", "floor",
-    "cos", "sin", "tan", 
+    "cos", "sin", "tan",
     "cosh", "sinh", "tanh",
     "clock", "difftime", "mktime", "time",
 
-    "div", "ldiv", 
+    "div", "ldiv",
 
-    "errno", 
+    "errno",
     "exp", "frexp", "ldexp",
 
     "fclose", "fflush",
@@ -67,7 +67,7 @@ static const char* ansi_keywords[] =
     "islower", "isprint", "ispunct", "isspace", "isupper", "isxdigit",
 
     "log", "log10",
-    "localeconv", "setlocale", 
+    "localeconv", "setlocale",
     "longjmp", "setjmp",
 
     "memcpy", "memmove", "memset", "strcpy", "strncpy",
@@ -82,7 +82,7 @@ static const char* ansi_keywords[] =
     "raise", "signal",
     "remove", "rename",
 
-    "scanf", "sscanf", 
+    "scanf", "sscanf",
     "setbuf", "setvbuf"
     "strcat", "strncat",
     "strcoll", "strxfrm",
@@ -93,7 +93,7 @@ static const char* ansi_keywords[] =
     "tmpfile", "tmpnam",
     "tolower", "toupper",
 
-    "ungetc", 
+    "ungetc",
     "va_arg", "va_start", "va_end",
     NULL
 };

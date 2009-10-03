@@ -77,7 +77,8 @@ exactly like the
 argument of the
 .Cm c99(1)
 utility. This flag only works for C source code files and implicitily sets the
-.Op Fl p argument.
+.Op Fl p
+argument.
 .It Fl f Ar filelist
 Use a list of files to scan instead of trailing arguments. This is useful for
 processing lots of files without typing in each one.
@@ -107,7 +108,8 @@ exactly like the
 argument of the
 .Cm c99(1)
 utility. This flag only works for C source code files and implicitily sets the
-.Op Fl p argument.
+.Op Fl p
+argument.
 .It Fl n
 Use the
 .Cm nasm(1)
@@ -125,8 +127,9 @@ variable
 is unset. This flag only works for C source code files.
 .It Fl P
 Exclude POSIX keywords. All globals and functions defined by the
-.St -p1003.1-2001 specification are ignored. This flag only works for C
-source code files.
+.St -p1003.1-2001 specification are ignored. This does not include the
+ANSI C or C99 standards, but keywords of the
+.St -p1003.1-2001 specification. This flag only works for C source code files.
 .It Fl r
 Print the flowgraph in reversed order, producing an inverted listing
 showing the callers of each function.
@@ -141,7 +144,9 @@ This option behaves exactly like the
 argument of the
 .Cm c99(1)
 utility. This flag only works for C source code files and implicitily sets the
-.Op Fl p argument.
+.Op Fl p
+argument.
+.El
 .Sh EXAMPLES
 TODO
 .Sh EXIT STATUS

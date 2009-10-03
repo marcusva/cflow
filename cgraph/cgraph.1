@@ -25,7 +25,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd January 16, 2008
+.Dd October 2, 2009
 .Dt CGRAPH 1
 .Os
 .Sh NAME
@@ -79,13 +79,16 @@ Include names that begin with an underscore.
 .El
 .It Fl P
 Exclude POSIX keywords. All globals and functions defined by the
-.St -p1003.1-2001 specification are ignored.
+.St -p1003.1-2001 specification are ignored. This does not include the
+ANSI C or C99 standards, but keywords of the
+.St -p1003.1-2001 specification.
 .It Fl r
 Print the flowgraph in reversed order, producing an inverted listing
 showing the callers of each function.
 .It Fl R Ar root
 The function to use as root function. The default is "main". If set to a
 name, that cannot be found in the file, all functions are printed.
+.El
 .Sh EXAMPLES
 TODO
 .Sh EXIT STATUS

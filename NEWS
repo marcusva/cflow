@@ -3,6 +3,7 @@
 * Fixed multiple file targets for cflow script.
 * Fixed FreeBSD-specific code.
 * Fixed compiler warnings.
+* Added missing POSIX.1 fstat() keyword.
 
 0.0.2 2009-03-28:
 -----------------

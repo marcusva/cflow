@@ -34,6 +34,12 @@ __FBSDID("$FreeBSD$");
 
 #include "graph.h"
 
+ /* Spacing after the function name for children:
+  * foo: int(), <test.c 17>
+  *    ^^^bar: void(), <test.c 23>
+  */     
+#define INDENT 3
+
 static int compare_gnodes (const void *a, const void *b);
 static bool_t nodes_contain (node_t* list, char *name);
 static void print_node (g_node_t *node, int pad, size_t maxlen, int count);
@@ -56,7 +62,6 @@ static void print_graphviz_callers (graph_t *graph, g_node_t *node, int depth);
 static int
 compare_gnodes (const void *a, const void *b)
 {
-    
     return strcmp ((*(g_node_t* const*)a)->name, (*(g_node_t* const*)b)->name);
 }
 
@@ -165,8 +170,8 @@ print_preorder (graph_t *graph, g_node_t *node, int depth, size_t maxlen,
     sub = node->list;
     while (sub)
     {
-        print_preorder (graph, sub->content, depth + 1, maxlen + sublen + 1,
-                        pad, count);
+        print_preorder (graph, sub->content, depth + 1,
+            maxlen + sublen + INDENT, pad, count);
         sub = sub->next;
     }
 }

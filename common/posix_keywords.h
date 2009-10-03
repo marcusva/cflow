@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007, Marcus von Appen
+ * Copyright (c) 2007-2009, Marcus von Appen
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,11 @@
 
 static const char* posix_keywords[] =
 {
-    "_exit",
+    "FD_CLR", "FD_ISSET", "FD_SET", "FD_ZERO",
+
+    "_exit", "_Exit",
     "_longjmp", "_setjmp",
     "_tolower", "_toupper",
-    "FD_CLR", "FD_ISSET", "FD_SET", "FD_ZERO",
 
     "a64l", "l64a",
     "accept", "access",
@@ -99,7 +100,7 @@ static const char* posix_keywords[] =
     "fpathconf", "pathconf",
     "freeaddrinfo", "getaddrinfo",
     "fseeko", "ftello",
-    "fstatvfs", "statvfs",
+    "fstat", "fstatvfs", "statvfs",
     "fsync",
     "ftime",
     "ftok",
