@@ -98,10 +98,10 @@ skip_whitespaces (FILE *fp)
                     return EOF;
                     
                 /* Line increment. */
-                offset = 1;
+                offset = 0;
                 line++;
 
-                ch = fgetc (fp);
+                /*ch = fgetc (fp);*/
             }
             else if (next == '*')
             {
@@ -130,7 +130,6 @@ skip_whitespaces (FILE *fp)
         } /* if (ch == '/') */
         else
             return ch;
-
     }
     while (!feof (fp));
     return EOF;
