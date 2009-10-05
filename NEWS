@@ -1,4 +1,4 @@
-0.0.3 2009-10-XX:
+0.0.3 2009-10-05:
 -----------------
 * Fixed multiple file targets for cflow script.
 * Fixed FreeBSD-specific code.
