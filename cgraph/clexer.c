@@ -101,7 +101,6 @@ skip_whitespaces (FILE *fp)
                 offset = 0;
                 line++;
 
-                /*ch = fgetc (fp);*/
             }
             else if (next == '*')
             {
