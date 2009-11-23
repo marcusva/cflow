@@ -2,7 +2,7 @@
 -----------------
 * Added Win32 platform support.
 * Added Visual Studio.NET support.
-* Minor ANIS/C99 keyword fixes.
+* Minor ANSI/C99 keyword fixes.
 
 0.0.3 2009-10-05:
 -----------------
