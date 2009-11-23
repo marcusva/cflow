@@ -31,6 +31,9 @@
 #define GRAPH_H
 
 #include <stdio.h>
+#ifdef WIN32
+#include "wincompat.h"
+#endif
 
 /* Boolean recognition. */
 typedef int bool_t;
