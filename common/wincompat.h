@@ -27,8 +27,8 @@
  *
  */
 
-/* Win32 platform specific code */
-#ifdef WIN32
+/* Win32/MSVC platform specific code */
+#ifdef _MSC_VER
 
 #include <ctype.h>
 

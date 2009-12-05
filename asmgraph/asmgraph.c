@@ -32,7 +32,7 @@ __FBSDID("$FreeBSD$");
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef WIN32
+#ifndef _MSC_VER
 #include <unistd.h>
 #endif
 #include <locale.h>
