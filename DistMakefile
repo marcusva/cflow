@@ -1,4 +1,4 @@
-VERSION=0.0.3
+VERSION=0.0.4
 
 RM ?= rm -rf
 MKDIR ?= mkdir
@@ -13,6 +13,7 @@ dist:
 	@$(CP) -rf cgraph dist/cflow-$(VERSION)
 	@$(CP) -rf common dist/cflow-$(VERSION)
 	@$(CP) -rf gnu dist/cflow-$(VERSION)
+	@$(CP) -rf win32 dist/cflow-$(VERSION)
 	@$(CP) -rf scripts dist/cflow-$(VERSION)
 	@$(CP) -rf test dist/cflow-$(VERSION)
 	@$(CP) -rf NEWS dist/cflow-$(VERSION)
@@ -23,3 +24,4 @@ dist:
 
 clean:
 	$(RM) dist
+
