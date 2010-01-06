@@ -158,7 +158,7 @@ if [ "$program" = "$progprefix/cgraph" ]; then
         tmpfile=`mktemp -t $PROGNAME` || exit 2
         
         $CPP $cppparams $graphfile > $tmpfile
-        ./$program $params $tmpfile || {
+        exec $program $params $tmpfile || {
             rm $tmpfile
             exit 2
         }
