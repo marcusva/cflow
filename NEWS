@@ -1,4 +1,8 @@
-0.0.5 2009-01-07:
+0.0.6 2010-xx-xx:
+-----------------
+* Fixed operator expressions for ! and |.
+
+0.0.5 2010-01-07:
 -----------------
 * Fixed path bug in cflow script. (thanks Till Plewe)
 * Removed unimplemented -f flag from cflow manpage.

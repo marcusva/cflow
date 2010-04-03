@@ -474,7 +474,8 @@ get_next_token (graph_t *graph, FILE *fp, char **name)
                 }
             }
             else if (ch == '+' || ch == '/' || ch == '%' || ch == '&' ||
-                     ch == '~' || ch == '>' || ch == '<' || ch == '^')
+                     ch == '~' || ch == '>' || ch == '<' || ch == '^' ||
+                     ch == '|' || ch == '!')
             {
                 ch = fgetc (fp);
                 if (ch != EOF && ch == '=')
